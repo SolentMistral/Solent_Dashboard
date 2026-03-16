@@ -2,16 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <!-- =========================================================
-       DASHBOARD META / VIEWPORT
-       ========================================================= -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marine Dashboard</title>
 
   <style>
     /* =========================================================
-       1) GLOBAL / PAGE LAYOUT
+       1) GLOBAL PAGE / LAYOUT
        ========================================================= */
     * { box-sizing: border-box; }
 
@@ -53,7 +49,7 @@
     }
 
     /* =========================================================
-       2) WIND PANEL
+       2) LEFT PANEL: WIND
        ========================================================= */
     .scale-box {
       position: absolute;
@@ -85,12 +81,12 @@
     }
 
     /* =========================================================
-       3) TIDE PANEL MAIN GRID
+       3) RIGHT PANEL: TIDE LAYOUT
        ========================================================= */
     .tide-panel {
       padding: 18px;
       display: grid;
-      grid-template-rows: auto auto auto auto;
+      grid-template-rows: auto auto auto 165px auto;
       gap: 12px;
       height: 100%;
       overflow: hidden;
@@ -98,7 +94,7 @@
     }
 
     /* =========================================================
-       4) TIDE HEADER
+       4) HEADER
        ========================================================= */
     .topline {
       display: flex;
@@ -167,7 +163,7 @@
     }
 
     /* =========================================================
-       5) NEXT HW / LW STATS
+       5) NEXT HW / LW BOXES
        ========================================================= */
     .stats {
       display: grid;
@@ -179,7 +175,7 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.03) 100%);
       border: 1px solid rgba(255,255,255,0.06);
       border-radius: 18px;
-      padding: 14px 15px;
+      padding: 12px 14px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
 
@@ -205,7 +201,7 @@
     }
 
     /* =========================================================
-       6) CHART CARD
+       6) TIDE GRAPH CARD
        ========================================================= */
     .chart-card {
       background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.03) 100%);
@@ -214,7 +210,7 @@
       padding: 10px 12px 8px 12px;
       display: grid;
       grid-template-rows: auto 145px auto;
-      gap: 6px;
+      gap: 8px;
       min-height: 0;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
@@ -231,30 +227,144 @@
       display: block;
     }
 
-    .table {
-      display: grid;
-      grid-template-columns: 52px 1fr 70px;
-      gap: 6px 10px;
-      align-items: center;
-      font-size: 14px;
-      padding-top: 2px;
+    .axis-label {
+      fill: rgba(191, 208, 224, 0.92);
+      font-size: 11px;
+      font-weight: 600;
     }
 
-    .head {
-      color: #8ea3ba;
+    .now-height-text {
+      fill: #f8fafc;
       font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding-bottom: 2px;
+      font-weight: 700;
     }
 
-    .row {
-      padding: 2px 0;
-      border-top: 1px solid rgba(255,255,255,0.04);
+    .event-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .event-pill {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .event-type {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .event-type.hw {
+      background: rgba(56,189,248,0.18);
+      color: #7dd3fc;
+    }
+
+    .event-type.lw {
+      background: rgba(148,163,184,0.18);
+      color: #cbd5e1;
+    }
+
+    .event-time {
+      font-size: 15px;
+      font-weight: 700;
+      color: #eaf2ff;
+    }
+
+    .event-height {
+      font-size: 14px;
+      color: #bfd0e0;
     }
 
     /* =========================================================
-       7) BOTTOM INFO CARDS
+       7) WEBCAM CARD
+       ========================================================= */
+    .webcam-card {
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.03) 100%);
+      display: grid;
+      grid-template-rows: auto 1fr;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      position: relative;
+    }
+
+    .webcam-topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .webcam-title {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #9fb3c8;
+    }
+
+    .webcam-sub {
+      font-size: 12px;
+      color: #7f93a9;
+    }
+
+    #solent-cam {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #09111d;
+      display: block;
+    }
+
+    .webcam-overlay {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .overlay-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(7, 17, 28, 0.72);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(6px);
+      color: #eaf2ff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .arrow {
+      font-size: 15px;
+      color: #7dd3fc;
+      line-height: 1;
+    }
+
+    /* =========================================================
+       8) BOTTOM CARDS
        ========================================================= */
     .bottom-stats {
       display: grid;
@@ -344,29 +454,13 @@
       color: #dbeafe;
       font-weight: 600;
     }
-
-    /* =========================================================
-       8) GRAPH TEXT STYLES
-       ========================================================= */
-    .axis-label {
-      fill: rgba(191, 208, 224, 0.92);
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .now-height-text {
-      fill: #f8fafc;
-      font-size: 12px;
-      font-weight: 700;
-    }
   </style>
 </head>
 <body>
-
   <div class="dashboard">
 
     <!-- =======================================================
-         LEFT SIDE: WIND PANEL
+         LEFT: WIND
          ======================================================= -->
     <div class="panel">
       <div class="scale-box">
@@ -381,7 +475,7 @@
     </div>
 
     <!-- =======================================================
-         RIGHT SIDE: TIDE PANEL
+         RIGHT: TIDE / WEBCAM / ASTRONOMY
          ======================================================= -->
     <div class="panel tide-panel">
 
@@ -395,7 +489,6 @@
             <span class="title-date" id="panel-date">-- --- ----</span>
           </div>
         </div>
-
         <div class="badge">Chart Datum / approx LAT</div>
       </div>
 
@@ -415,12 +508,11 @@
         </div>
       </div>
 
-      <!-- CHART -->
+      <!-- GRAPH -->
       <div class="chart-card">
         <div class="chart-title">24 hour tide curve</div>
 
         <svg id="tide-chart" viewBox="0 0 520 145" preserveAspectRatio="none" aria-label="Tide curve">
-          <!-- chart grid -->
           <g id="tide-grid">
             <line x1="40" y1="18" x2="520" y2="18" stroke="rgba(255,255,255,0.08)"></line>
             <line x1="40" y1="48" x2="520" y2="48" stroke="rgba(255,255,255,0.08)"></line>
@@ -428,7 +520,6 @@
             <line x1="40" y1="108" x2="520" y2="108" stroke="rgba(255,255,255,0.08)"></line>
           </g>
 
-          <!-- left axis labels -->
           <g id="y-axis-labels">
             <text id="y-label-top" class="axis-label" x="4" y="21">3.0m</text>
             <text id="y-label-2" class="axis-label" x="4" y="51">2.5m</text>
@@ -436,29 +527,47 @@
             <text id="y-label-bottom" class="axis-label" x="4" y="111">1.5m</text>
           </g>
 
-          <!-- chart fill and line -->
           <path id="tide-fill" fill="rgba(56,189,248,0.14)"></path>
           <path id="tide-line" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
 
-          <!-- now marker -->
           <line id="now-line" x1="260" y1="18" x2="260" y2="112" stroke="#f8fafc" stroke-dasharray="6 6" opacity="0.82"></line>
           <circle id="now-dot" cx="260" cy="80" r="5" fill="#f8fafc"></circle>
-          <text id="now-height-label" class="now-height-text" x="260" y="11" text-anchor="middle">2.14 m</text>
+          <text id="now-height-label" class="now-height-text" x="260" y="15" text-anchor="middle">2.14 m</text>
         </svg>
 
-        <!-- tide table -->
-        <div class="table" id="tide-table">
-          <div class="head">Type</div><div class="head">Time</div><div class="head">Height</div>
-          <div class="row">HW</div><div class="row">07:51</div><div class="row">3.03 m</div>
-          <div class="row">LW</div><div class="row">13:20</div><div class="row">1.24 m</div>
-          <div class="row">HW</div><div class="row">20:11</div><div class="row">2.88 m</div>
+        <div class="event-strip" id="event-strip">
+          <div class="event-pill"><span class="event-type hw">HW</span><span class="event-time">18:16</span><span class="event-height">3.06 m</span></div>
+          <div class="event-pill"><span class="event-type lw">LW</span><span class="event-time">00:16</span><span class="event-height">1.24 m</span></div>
+          <div class="event-pill"><span class="event-type hw">HW</span><span class="event-time">06:16</span><span class="event-height">2.92 m</span></div>
+          <div class="event-pill"><span class="event-type lw">LW</span><span class="event-time">13:16</span><span class="event-height">1.30 m</span></div>
+        </div>
+      </div>
+
+      <!-- WEBCAM -->
+      <div class="webcam-card">
+        <div class="webcam-topline">
+          <div class="webcam-title">Solent Webcam</div>
+          <div class="webcam-sub">Royal Solent YC</div>
+        </div>
+
+        <video
+          id="solent-cam"
+          autoplay
+          muted
+          playsinline>
+        </video>
+
+        <div class="webcam-overlay">
+          <div class="overlay-chip">
+            <span class="arrow">↗</span>
+            <span id="cam-overlay-left">Solent live</span>
+          </div>
+          <div class="overlay-chip" id="cam-overlay-time">--:--</div>
         </div>
       </div>
 
       <!-- BOTTOM CARDS -->
       <div class="bottom-stats">
-
-        <!-- MOON -->
         <div class="small-card">
           <div class="small-label">Moon Phase</div>
           <div class="bottom-card-inner">
@@ -475,53 +584,48 @@
           </div>
         </div>
 
-        <!-- SUNRISE -->
         <div class="small-card">
           <div class="small-label">Sunrise</div>
           <div class="bottom-card-inner">
-            <div class="icon-wrap" id="morning-icon-wrap">
+            <div class="icon-wrap">
               <svg id="morning-icon-svg" class="wx-svg" viewBox="0 0 64 64" aria-label="Morning weather"></svg>
             </div>
             <div class="bottom-copy">
               <div class="small-value" id="sunrise-time">06:34</div>
-              <div class="small-sub">
-                <span class="small-sub-strong" id="morning-summary">Partly cloudy</span>
-              </div>
+              <div class="small-sub"><span class="small-sub-strong" id="morning-summary">Partly cloudy</span></div>
             </div>
           </div>
         </div>
 
-        <!-- SUNSET -->
         <div class="small-card">
           <div class="small-label">Sunset</div>
           <div class="bottom-card-inner">
-            <div class="icon-wrap" id="afternoon-icon-wrap">
+            <div class="icon-wrap">
               <svg id="afternoon-icon-svg" class="wx-svg" viewBox="0 0 64 64" aria-label="Afternoon weather"></svg>
             </div>
             <div class="bottom-copy">
               <div class="small-value" id="sunset-time">19:41</div>
-              <div class="small-sub">
-                <span class="small-sub-strong" id="afternoon-summary">Mixed</span>
-              </div>
+              <div class="small-sub"><span class="small-sub-strong" id="afternoon-summary">Mixed</span></div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 
+  <!-- =========================================================
+       HLS PLAYER FOR WEBCAM
+       ========================================================= -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
   <script>
     /* =========================================================
        9) REFRESH TIMINGS
-       - wind iframe now left alone
-       - tide refresh every 15 mins
-       - astronomy/weather refresh every hour
-       - panel clock updates every 30s
        ========================================================= */
     const TIDE_REFRESH_MS = 15 * 60 * 1000;
     const AUX_REFRESH_MS = 60 * 60 * 1000;
     const CLOCK_REFRESH_MS = 30 * 1000;
+    const CURVE_ANIMATION_MS = 1500;
 
     /* =========================================================
        10) LOCATION / DATA CONFIG
@@ -533,12 +637,11 @@
       tideSensor: 87
     };
 
-    // Paste your Coastal Monitoring API key here when you have it
     const CCO_API_KEY = "PASTE_YOUR_CCO_KEY_HERE";
+    const WEBCAM_STREAM = "https://camsecure.uk/HLS/royalsolent.m3u8";
 
     /* =========================================================
        11) SAMPLE TIDE DATA
-       Used until the live tide API key is added / working
        ========================================================= */
     const SAMPLE_TIDE_POINTS = [
       { time: hoursFromNow(-6),  height: 2.45 },
@@ -585,20 +688,23 @@
 
     function updatePanelClock() {
       const now = new Date();
-      document.getElementById("panel-time").textContent = now.toLocaleTimeString("en-GB", {
+      const timeStr = now.toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit"
       });
-      document.getElementById("panel-date").textContent = now.toLocaleDateString("en-GB", {
+      const dateStr = now.toLocaleDateString("en-GB", {
         weekday: "short",
         day: "numeric",
         month: "short"
       });
+
+      document.getElementById("panel-time").textContent = timeStr;
+      document.getElementById("panel-date").textContent = dateStr;
+      document.getElementById("cam-overlay-time").textContent = timeStr;
     }
 
     /* =========================================================
-       13) WEATHER ICON DRAWING
-       These make the sunrise/sunset cards look cleaner than emoji
+       13) WEATHER ICON SVG DRAWING
        ========================================================= */
     function setWeatherSvg(svgId, type) {
       const svg = document.getElementById(svgId);
@@ -743,7 +849,7 @@
     }
 
     /* =========================================================
-       14) MOON PHASE LOGIC
+       14) MOON PHASE
        ========================================================= */
     function moonInfoForDate(date = new Date()) {
       const synodicMonth = 29.53058867;
@@ -782,7 +888,7 @@
     }
 
     /* =========================================================
-       15) OPEN-METEO: SUNRISE / SUNSET / WEATHER
+       15) OPEN-METEO WEATHER / SUN
        ========================================================= */
     async function refreshAstronomyAndWeather() {
       try {
@@ -824,8 +930,44 @@
     }
 
     /* =========================================================
-       16) TIDE CHART HELPERS
+       16) WEBCAM INIT
        ========================================================= */
+    function initWebcam() {
+      const video = document.getElementById("solent-cam");
+
+      if (window.Hls && Hls.isSupported()) {
+        const hls = new Hls({
+          maxBufferLength: 30,
+          liveSyncDurationCount: 3
+        });
+        hls.loadSource(WEBCAM_STREAM);
+        hls.attachMedia(video);
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = WEBCAM_STREAM;
+      }
+
+      document.getElementById("cam-overlay-left").textContent = "Solent live";
+    }
+
+    /* =========================================================
+       17) TIDE GRAPH / ANIMATION
+       ========================================================= */
+    let currentDisplayedPoints = null;
+
+    function setYAxisLabels(minY, maxY) {
+      const values = [
+        maxY,
+        maxY - ((maxY - minY) / 3),
+        maxY - (2 * (maxY - minY) / 3),
+        minY
+      ];
+
+      document.getElementById("y-label-top").textContent = `${values[0].toFixed(1)}m`;
+      document.getElementById("y-label-2").textContent = `${values[1].toFixed(1)}m`;
+      document.getElementById("y-label-3").textContent = `${values[2].toFixed(1)}m`;
+      document.getElementById("y-label-bottom").textContent = `${values[3].toFixed(1)}m`;
+    }
+
     function buildPath(points, xStart, xWidth, chartHeight, minY, maxY) {
       const xStep = xWidth / Math.max(points.length - 1, 1);
 
@@ -844,20 +986,6 @@
       return { d, yScale };
     }
 
-    function setYAxisLabels(minY, maxY) {
-      const values = [
-        maxY,
-        maxY - ((maxY - minY) / 3),
-        maxY - (2 * (maxY - minY) / 3),
-        minY
-      ];
-
-      document.getElementById("y-label-top").textContent = `${values[0].toFixed(1)}m`;
-      document.getElementById("y-label-2").textContent = `${values[1].toFixed(1)}m`;
-      document.getElementById("y-label-3").textContent = `${values[2].toFixed(1)}m`;
-      document.getElementById("y-label-bottom").textContent = `${values[3].toFixed(1)}m`;
-    }
-
     function renderTideChart(points) {
       if (!points || !points.length) return;
 
@@ -869,7 +997,6 @@
       const minYRaw = Math.min(...points.map(p => p.height));
       const maxYRaw = Math.max(...points.map(p => p.height));
 
-      // small padding so line doesn't sit on borders
       const minY = Math.floor((minYRaw - 0.15) * 10) / 10;
       const maxY = Math.ceil((maxYRaw + 0.15) * 10) / 10;
 
@@ -902,11 +1029,64 @@
       document.getElementById("now-line").setAttribute("x2", xNow);
       document.getElementById("now-dot").setAttribute("cx", xNow);
       document.getElementById("now-dot").setAttribute("cy", yNow);
-
-      // move slightly lower than before so it does not clip
       document.getElementById("now-height-label").setAttribute("x", xNow);
       document.getElementById("now-height-label").setAttribute("y", 15);
       document.getElementById("now-height-label").textContent = `${nearest.height.toFixed(2)} m`;
+    }
+
+    function animateTideChart(fromPoints, toPoints, duration = CURVE_ANIMATION_MS) {
+      if (!fromPoints || fromPoints.length !== toPoints.length) {
+        renderTideChart(toPoints);
+        currentDisplayedPoints = toPoints.map(p => ({ ...p }));
+        return;
+      }
+
+      const start = performance.now();
+
+      function step(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+
+        const interpolated = toPoints.map((target, i) => ({
+          time: target.time,
+          height: fromPoints[i].height + ((target.height - fromPoints[i].height) * eased)
+        }));
+
+        renderTideChart(interpolated);
+
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          currentDisplayedPoints = toPoints.map(p => ({ ...p }));
+          renderTideChart(currentDisplayedPoints);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function normalisePointCount(points, targetCount = 25) {
+      if (points.length === targetCount) return points;
+
+      const result = [];
+      for (let i = 0; i < targetCount; i++) {
+        const position = (i / (targetCount - 1)) * (points.length - 1);
+        const low = Math.floor(position);
+        const high = Math.min(points.length - 1, Math.ceil(position));
+        const ratio = position - low;
+
+        const a = points[low];
+        const b = points[high];
+
+        const timeA = new Date(a.time).getTime();
+        const timeB = new Date(b.time).getTime();
+
+        result.push({
+          time: new Date(timeA + ((timeB - timeA) * ratio)).toISOString(),
+          height: a.height + ((b.height - a.height) * ratio)
+        });
+      }
+      return result;
     }
 
     function findEventsFromPoints(points) {
@@ -926,18 +1106,17 @@
       return events;
     }
 
-    function renderTideTable(events) {
-      const table = document.getElementById("tide-table");
+    function renderEventStrip(events) {
+      const strip = document.getElementById("event-strip");
       const firstEvents = events.slice(0, 4);
 
-      table.innerHTML = `
-        <div class="head">Type</div><div class="head">Time</div><div class="head">Height</div>
-        ${firstEvents.map(e => `
-          <div class="row">${e.type}</div>
-          <div class="row">${formatTimeLocal(e.time)}</div>
-          <div class="row">${e.height.toFixed(2)} m</div>
-        `).join("")}
-      `;
+      strip.innerHTML = firstEvents.map(e => `
+        <div class="event-pill">
+          <span class="event-type ${e.type === "HW" ? "hw" : "lw"}">${e.type}</span>
+          <span class="event-time">${formatTimeLocal(e.time)}</span>
+          <span class="event-height">${e.height.toFixed(2)} m</span>
+        </div>
+      `).join("");
     }
 
     function renderTideSummary(events) {
@@ -956,23 +1135,29 @@
       }
     }
 
-    /* =========================================================
-       17) SAMPLE TIDE FALLBACK
-       ========================================================= */
+    function updateTideDisplay(points, events, statusText) {
+      const normalised = normalisePointCount(points, 25);
+
+      if (!currentDisplayedPoints) {
+        currentDisplayedPoints = normalised.map(p => ({ ...p }));
+        renderTideChart(currentDisplayedPoints);
+      } else {
+        animateTideChart(currentDisplayedPoints, normalised);
+      }
+
+      renderTideSummary(events);
+      renderEventStrip(events);
+      document.getElementById("data-status").textContent = statusText;
+    }
+
     function useSampleTides() {
       const points = SAMPLE_TIDE_POINTS;
       const events = findEventsFromPoints(points);
-
-      renderTideChart(points);
-      renderTideSummary(events);
-      renderTideTable(events);
-      document.getElementById("data-status").textContent = "sample tide data";
+      updateTideDisplay(points, events, "sample tide data");
     }
 
     /* =========================================================
        18) LIVE TIDE FETCH
-       You may need to tweak the endpoint shape slightly once
-       your Coastal Monitoring key is active.
        ========================================================= */
     async function refreshTides() {
       if (!CCO_API_KEY || CCO_API_KEY === "PASTE_YOUR_CCO_KEY_HERE") {
@@ -1008,11 +1193,7 @@
         }
 
         const events = findEventsFromPoints(points);
-
-        renderTideChart(points);
-        renderTideSummary(events);
-        renderTideTable(events);
-        document.getElementById("data-status").textContent = "live tide data";
+        updateTideDisplay(points, events, "live tide data");
       } catch (err) {
         console.error("Tide refresh failed", err);
         useSampleTides();
@@ -1020,10 +1201,11 @@
     }
 
     /* =========================================================
-       19) INITIAL LOAD / REFRESH LOOPS
+       19) INITIAL LOAD / TIMERS
        ========================================================= */
     async function initialLoad() {
       updatePanelClock();
+      initWebcam();
       await refreshAstronomyAndWeather();
       await refreshTides();
     }
