@@ -929,7 +929,7 @@
     const LYMINGTON = { lat: 50.7592, lon: -1.5383 };
     const FORECAST_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,precipitation_probability,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&models=ukmo_uk_deterministic_2km&timezone=Europe%2FLondon&forecast_days=1&wind_speed_unit=kn";
     const TIDE_API_KEY = "b8a696396eec2787361f6a4e67951fd8";
-    const TIDE_SENSOR_ID = 87;
+    const TIDE_SENSOR_ID = "Lymington";
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
@@ -1527,29 +1527,37 @@
     /* =========================================================
        PANEL INITIALISERS
        ========================================================= */
-    async function fetchTidePoints() {
+   async function fetchTidePoints() {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const ts = toCompactDateTime(start);
 
   const urls = [
-    `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`,
-    `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`
+    `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${encodeURIComponent(TIDE_SENSOR_ID)}&duration=24`,
+    `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${encodeURIComponent(TIDE_SENSOR_ID)}&duration=24`
   ];
 
   let lastError = "Unknown tide error";
 
   for (const url of urls) {
     try {
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json"
+        }
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
 
       const data = await res.json();
-      console.log("Tide raw response URL:", url);
-      console.log("Tide raw response:", data);
-      console.log("Tide first feature:", data?.features?.[0]);
+      const features = Array.isArray(data?.features) ? data.features : [];
 
-      const features = Array.isArray(data.features) ? data.features : [];
+      // helpful temporary debug
+      console.log("Tide URL:", url);
+      console.log("Tide feature count:", features.length);
+      console.log("First tide feature:", features[0]);
 
       const points = features.map((feature) => {
         const props = feature?.properties || {};
@@ -1557,41 +1565,45 @@
           ? feature.geometry.coordinates
           : [];
 
-        // Try a much wider set of possible field names
+        // try common CCO-ish datetime fields
         const timeRaw =
-          props.time ||
-          props.dateTime ||
-          props.datetime ||
-          props.timestamp ||
-          props.date ||
-          props.obs_date ||
-          props.referenceTime ||
-          props.eventTime ||
-          props.dt ||
-          feature?.id;
+          props.time ??
+          props.dateTime ??
+          props.datetime ??
+          props.timestamp ??
+          props.date ??
+          props.referenceTime ??
+          props.eventTime ??
+          props.dt ??
+          null;
 
+        // try common numeric fields
         const heightRaw =
           props.value ??
           props.measurement ??
           props.level ??
           props.tide ??
           props.elevation ??
-          props.z ??
           props.height ??
+          props.z ??
           coords[2] ??
-          coords[1];
+          null;
+
+        if (!timeRaw || heightRaw == null) return null;
 
         const time = parseApiDate(timeRaw);
         const height = Number(heightRaw);
 
-        if (!timeRaw || Number.isNaN(time.getTime()) || !Number.isFinite(height)) {
-          return null;
-        }
+        if (Number.isNaN(time.getTime()) || !Number.isFinite(height)) return null;
 
         return { time, height };
-      }).filter(Boolean).sort((a, b) => a.time - b.time);
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.time - b.time);
 
-      if (points.length) return points;
+      if (points.length) {
+        return points;
+      }
 
       lastError = `No tide points parsed from response at ${url}`;
     } catch (err) {
