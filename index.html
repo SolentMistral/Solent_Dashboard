@@ -684,6 +684,29 @@
       line-height: 1;
     }
 
+
+    .status-note {
+      position: absolute;
+      left: 14px;
+      bottom: 10px;
+      z-index: 7;
+      max-width: calc(100% - 28px);
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: rgba(7,17,28,0.68);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-soft);
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.25;
+      display: none;
+      pointer-events: none;
+    }
+
+    .status-note.show {
+      display: block;
+    }
+
     /* RESPONSIVE */
     @media (max-width: 1100px) {
       html, body { overflow: auto; }
@@ -792,6 +815,7 @@
       <!-- 4) TIDE PANEL -->
       <div class="panel panel-shell tide-panel">
         <div class="mode-chip">Live API</div>
+        <div class="status-note" id="tide-status-note"></div>
 
         <div class="tide-main">
           <div class="graph-title">
@@ -861,6 +885,7 @@
       <!-- 5) FORECAST PANEL -->
       <div class="panel panel-shell forecast-panel">
         <div class="mode-chip">Live API</div>
+        <div class="status-note" id="forecast-status-note"></div>
 
         <div class="graph-title">
           <div class="graph-title-main">Forecast</div>
@@ -902,7 +927,7 @@
        ========================================================= */
     const WEBCAM_STREAM = "https://camsecure.uk/HLS/royalsolent.m3u8";
     const LYMINGTON = { lat: 50.7592, lon: -1.5383 };
-    const FORECAST_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,precipitation_probability,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&models=ukmo_uk_deterministic_2km,ukmo_seamless&timezone=auto&forecast_days=1&wind_speed_unit=kn";
+    const FORECAST_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,precipitation_probability,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&models=ukmo_uk_deterministic_2km&timezone=Europe%2FLondon&forecast_days=1&wind_speed_unit=kn";
     const TIDE_API_KEY = "b8a696396eec2787361f6a4e67951fd8";
     const TIDE_SENSOR_ID = 87;
 
@@ -925,6 +950,22 @@
     function hourOnlyLabel(value) {
       const parts = String(value).split(":");
       return (parts[0] || "00").padStart(2, "0");
+    }
+
+    function setStatusNote(id, message) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!message) {
+        el.textContent = "";
+        el.classList.remove("show");
+        return;
+      }
+      el.textContent = message;
+      el.classList.add("show");
+    }
+
+    function safeArrayLength(value) {
+      return Array.isArray(value) ? value.length : 0;
     }
 
     /* =========================================================
@@ -1323,28 +1364,46 @@
 
     async function loadForecastData() {
       try {
-        const res = await fetch(FORECAST_URL);
+        const res = await fetch(FORECAST_URL, { cache: "no-store" });
         if (!res.ok) throw new Error(`Forecast API HTTP ${res.status}`);
         const data = await res.json();
+        if (data.error) throw new Error(data.reason || "Forecast API returned an error");
+
         const hourly = data.hourly || {};
-        const rows = (hourly.time || []).map((time, i) => ({
+        const requiredKeys = ["time", "temperature_2m", "rain", "wind_speed_10m", "wind_gusts_10m", "weather_code"];
+        const missing = requiredKeys.filter(key => safeArrayLength(hourly[key]) === 0);
+        if (missing.length) throw new Error(`Forecast response missing: ${missing.join(", ")}`);
+
+        const rowCount = hourly.time.length;
+        const rows = hourly.time.map((time, i) => ({
           time: new Date(time),
-          temp: Number(hourly.temperature_2m?.[i] ?? 0),
-          wind: Number(hourly.wind_speed_10m?.[i] ?? 0),
-          gust: Number(hourly.wind_gusts_10m?.[i] ?? hourly.wind_speed_10m?.[i] ?? 0),
-          rain: Number(hourly.rain?.[i] ?? 0),
-          code: Number(hourly.weather_code?.[i] ?? 3)
-        }));
-        const today = new Date(rows[0]?.time || Date.now());
-        const start = new Date(today); start.setHours(0, 0, 0, 0);
-        const end = new Date(start); end.setDate(end.getDate() + 1);
+          temp: Number(hourly.temperature_2m[i] ?? 0),
+          wind: Number(hourly.wind_speed_10m[i] ?? 0),
+          gust: Number(hourly.wind_gusts_10m[i] ?? hourly.wind_speed_10m[i] ?? 0),
+          rain: Number(hourly.rain[i] ?? 0),
+          code: Number(hourly.weather_code[i] ?? 3)
+        })).filter(row => !Number.isNaN(row.time.getTime()));
+
+        if (!rows.length) throw new Error(`Forecast parsed 0 rows from ${rowCount} hourly timestamps`);
+
+        const start = new Date(rows[0].time);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(end.getDate() + 1);
         const todaysRows = rows.filter(row => row.time >= start && row.time < end).slice(0, 24);
-        forecastData = segmentForecast(todaysRows.length ? todaysRows : rows.slice(0, 24));
+        const sourceRows = todaysRows.length ? todaysRows : rows.slice(0, 24);
+        forecastData = segmentForecast(sourceRows);
+
+        if (!forecastData.length) throw new Error("Forecast segmentation produced 0 segments");
+
         document.querySelector('.forecast-panel .mode-chip').textContent = 'Live API';
+        setStatusNote('forecast-status-note', 'Open-Meteo live data loaded');
+        console.log('Forecast live rows', sourceRows.length, 'segments', forecastData.length, data);
       } catch (err) {
         console.error('Forecast API load failed', err);
         forecastData = fallbackForecastData();
         document.querySelector('.forecast-panel .mode-chip').textContent = 'Fallback';
+        setStatusNote('forecast-status-note', `Forecast fallback: ${err.message}`);
       }
     }
 
@@ -1472,24 +1531,44 @@
       const start = new Date();
       start.setHours(0, 0, 0, 0);
       const ts = toCompactDateTime(start);
-      const url = `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`;
+      const urls = [
+        `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`,
+        `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`
+      ];
 
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
-      if (!res.ok) throw new Error(`Tide API HTTP ${res.status}`);
-      const data = await res.json();
-      const features = data.features || [];
-      const points = features.map(feature => {
-        const props = feature.properties || {};
-        const coords = feature.geometry && Array.isArray(feature.geometry.coordinates) ? feature.geometry.coordinates : [];
-        const timeRaw = props.time || props.datetime || props.date || props.timestamp || props.obs_date || props.DateTime || props.referenceTime;
-        const heightRaw = props.value ?? props.level ?? props.tide ?? props.elevation ?? props.measurement ?? props.z ?? coords[2];
-        const time = parseApiDate(timeRaw);
-        const height = Number(heightRaw);
-        return (timeRaw && Number.isFinite(height) && !Number.isNaN(time.getTime())) ? { time, height } : null;
-      }).filter(Boolean).sort((a, b) => a.time - b.time);
+      let lastError = null;
 
-      if (!points.length) throw new Error("No tide points parsed from API response");
-      return points;
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (data.error) throw new Error(data.reason || 'API error');
+
+          const features = Array.isArray(data.features) ? data.features : [];
+          const rawPoints = features.map(feature => {
+            const props = feature.properties || {};
+            const coords = feature.geometry && Array.isArray(feature.geometry.coordinates) ? feature.geometry.coordinates : [];
+            const timeRaw = props.time || props.datetime || props.date || props.timestamp || props.obs_date || props.DateTime || props.referenceTime || props.dt;
+            const heightRaw = props.value ?? props.level ?? props.tide ?? props.elevation ?? props.measurement ?? props.z ?? coords[2];
+            const time = parseApiDate(timeRaw);
+            const height = Number(heightRaw);
+            return (timeRaw && Number.isFinite(height) && !Number.isNaN(time.getTime())) ? { time, height } : null;
+          }).filter(Boolean).sort((a, b) => a.time - b.time);
+
+          if (rawPoints.length) {
+            console.log('Tide live points', rawPoints.length, 'from', url, data);
+            return rawPoints;
+          }
+
+          throw new Error('No tide points parsed from response');
+        } catch (err) {
+          lastError = new Error(`${url} -> ${err.message}`);
+          console.error('Tide fetch attempt failed', lastError);
+        }
+      }
+
+      throw lastError || new Error('All tide API attempts failed');
     }
 
     async function initTidePanel() {
@@ -1501,6 +1580,7 @@
         populateNextTide(turns);
         populateTideEvents(turns);
         document.querySelector('.tide-panel .mode-chip').textContent = 'Live API';
+        setStatusNote('tide-status-note', 'CCO live data loaded');
       } catch (err) {
         console.error('Tide API load failed', err);
         const points = generateTodaySampleTide();
@@ -1510,6 +1590,7 @@
         populateNextTide(turns);
         populateTideEvents(turns);
         document.querySelector('.tide-panel .mode-chip').textContent = 'Fallback';
+        setStatusNote('tide-status-note', `Tide fallback: ${err.message}`);
       }
     }
 
