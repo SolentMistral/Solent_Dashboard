@@ -1528,48 +1528,79 @@
        PANEL INITIALISERS
        ========================================================= */
     async function fetchTidePoints() {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const ts = toCompactDateTime(start);
-      const urls = [
-        `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`,
-        `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`
-      ];
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const ts = toCompactDateTime(start);
 
-      let lastError = null;
+  const urls = [
+    `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`,
+    `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`
+  ];
 
-      for (const url of urls) {
-        try {
-          const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (data.error) throw new Error(data.reason || 'API error');
+  let lastError = "Unknown tide error";
 
-          const features = Array.isArray(data.features) ? data.features : [];
-          const rawPoints = features.map(feature => {
-            const props = feature.properties || {};
-            const coords = feature.geometry && Array.isArray(feature.geometry.coordinates) ? feature.geometry.coordinates : [];
-            const timeRaw = props.time || props.datetime || props.date || props.timestamp || props.obs_date || props.DateTime || props.referenceTime || props.dt;
-            const heightRaw = props.value ?? props.level ?? props.tide ?? props.elevation ?? props.measurement ?? props.z ?? coords[2];
-            const time = parseApiDate(timeRaw);
-            const height = Number(heightRaw);
-            return (timeRaw && Number.isFinite(height) && !Number.isNaN(time.getTime())) ? { time, height } : null;
-          }).filter(Boolean).sort((a, b) => a.time - b.time);
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-          if (rawPoints.length) {
-            console.log('Tide live points', rawPoints.length, 'from', url, data);
-            return rawPoints;
-          }
+      const data = await res.json();
+      console.log("Tide raw response URL:", url);
+      console.log("Tide raw response:", data);
+      console.log("Tide first feature:", data?.features?.[0]);
 
-          throw new Error('No tide points parsed from response');
-        } catch (err) {
-          lastError = new Error(`${url} -> ${err.message}`);
-          console.error('Tide fetch attempt failed', lastError);
+      const features = Array.isArray(data.features) ? data.features : [];
+
+      const points = features.map((feature) => {
+        const props = feature?.properties || {};
+        const coords = Array.isArray(feature?.geometry?.coordinates)
+          ? feature.geometry.coordinates
+          : [];
+
+        // Try a much wider set of possible field names
+        const timeRaw =
+          props.time ||
+          props.dateTime ||
+          props.datetime ||
+          props.timestamp ||
+          props.date ||
+          props.obs_date ||
+          props.referenceTime ||
+          props.eventTime ||
+          props.dt ||
+          feature?.id;
+
+        const heightRaw =
+          props.value ??
+          props.measurement ??
+          props.level ??
+          props.tide ??
+          props.elevation ??
+          props.z ??
+          props.height ??
+          coords[2] ??
+          coords[1];
+
+        const time = parseApiDate(timeRaw);
+        const height = Number(heightRaw);
+
+        if (!timeRaw || Number.isNaN(time.getTime()) || !Number.isFinite(height)) {
+          return null;
         }
-      }
 
-      throw lastError || new Error('All tide API attempts failed');
+        return { time, height };
+      }).filter(Boolean).sort((a, b) => a.time - b.time);
+
+      if (points.length) return points;
+
+      lastError = `No tide points parsed from response at ${url}`;
+    } catch (err) {
+      lastError = `${url} -> ${err.message}`;
     }
+  }
+
+  throw new Error(lastError);
+}
 
     async function initTidePanel() {
       try {
