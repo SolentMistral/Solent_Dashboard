@@ -1123,7 +1123,7 @@
 
     function drawTideChart(points) {
       const svgWidth = 1000;
-      const plotTop = 36;
+      const plotTop = 42;
       const plotBottom = 350;
       const labelLayer = document.getElementById("tide-label-layer");
       const gridLayer = document.getElementById("tide-grid-layer");
@@ -1174,13 +1174,13 @@
       document.getElementById("tide-now-dot-glow").setAttribute("cx", nowX.toFixed(2));
       document.getElementById("tide-now-dot-glow").setAttribute("cy", nowY.toFixed(2));
 
-      const labelWidth = 88;
-      const labelHeight = 30;
+      const labelWidth = 160;
+      const labelHeight = 56;
       const labelX = clamp(nowX - labelWidth / 2, 8, svgWidth - labelWidth - 8);
-      const labelY = 4;
+      const labelY = -6;
       labelLayer.innerHTML = `
         <rect x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" width="${labelWidth}" height="${labelHeight}" rx="15" fill="rgba(7,17,28,0.74)" stroke="rgba(255,255,255,0.10)"></rect>
-        <text x="${(labelX + labelWidth / 2).toFixed(2)}" y="${(labelY + 19).toFixed(2)}" fill="#f3f5fb" font-size="15" font-weight="500" text-anchor="middle">${current.height.toFixed(2)}m</text>
+        <text x="${(labelX + labelWidth / 2).toFixed(2)}" y="${(labelY + 37).toFixed(2)}" fill="#f3f5fb" font-size="26" font-weight="500" text-anchor="middle">${current.height.toFixed(2)}m</text>
       `;
 
       return { current, minHRaw, maxHRaw };
