@@ -932,7 +932,6 @@
     const TIDE_SENSOR_ID = "Lymington";
 
     console.log("DASHBOARD BUILD v4");
-alert("DASHBOARD BUILD v4");
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
@@ -1531,6 +1530,8 @@ alert("DASHBOARD BUILD v4");
        PANEL INITIALISERS
        ========================================================= */
    async function fetchTidePoints() {
+  console.log("fetchTidePoints started");
+
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const ts = toCompactDateTime(start);
@@ -1544,21 +1545,25 @@ alert("DASHBOARD BUILD v4");
 
   for (const url of urls) {
     try {
+      console.log("Trying tide URL:", url);
+
       const res = await fetch(url, {
-        headers: {
-          Accept: "application/json"
-        }
+        headers: { Accept: "application/json" }
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
+      console.log("Tide HTTP status:", res.status, url);
+
+      const text = await res.text();
+      console.log("Tide raw text:", text.slice(0, 1000));
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (jsonErr) {
+        throw new Error(`Response was not valid JSON: ${text.slice(0, 200)}`);
       }
 
-      const data = await res.json();
       const features = Array.isArray(data?.features) ? data.features : [];
-
-      // helpful temporary debug
-      console.log("Tide URL:", url);
       console.log("Tide feature count:", features.length);
       console.log("First tide feature:", features[0]);
 
@@ -1568,7 +1573,6 @@ alert("DASHBOARD BUILD v4");
           ? feature.geometry.coordinates
           : [];
 
-        // try common CCO-ish datetime fields
         const timeRaw =
           props.time ??
           props.dateTime ??
@@ -1580,7 +1584,6 @@ alert("DASHBOARD BUILD v4");
           props.dt ??
           null;
 
-        // try common numeric fields
         const heightRaw =
           props.value ??
           props.measurement ??
@@ -1600,16 +1603,15 @@ alert("DASHBOARD BUILD v4");
         if (Number.isNaN(time.getTime()) || !Number.isFinite(height)) return null;
 
         return { time, height };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.time - b.time);
+      }).filter(Boolean).sort((a, b) => a.time - b.time);
 
-      if (points.length) {
-        return points;
-      }
+      console.log("Parsed tide points:", points.length);
+
+      if (points.length) return points;
 
       lastError = `No tide points parsed from response at ${url}`;
     } catch (err) {
+      console.error("Tide fetch attempt failed:", err);
       lastError = `${url} -> ${err.message}`;
     }
   }
