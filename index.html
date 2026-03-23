@@ -1244,8 +1244,12 @@
         forecastData = segmentForecast(sourceRows);
         if (!forecastData.length) throw new Error("Forecast segmentation produced 0 segments");
         document.querySelector('.forecast-panel .mode-chip').textContent = 'Live API';
-        setStatusNote('forecast-status-note', 'Open-Meteo live data loaded');
-        console.log('Forecast live rows', sourceRows.length, 'segments', forecastData.length, data);
+        setStatusNote('forecast-status-note', '');
+        const DEBUG = false;
+
+if (DEBUG) {
+  console.log('Forecast live rows', sourceRows.length, forecastData);
+}
       } catch (err) {
         console.error('Forecast API load failed', err);
         forecastData = fallbackForecastData();
@@ -1358,7 +1362,6 @@
        PANEL INITIALISERS
        ========================================================= */
    async function fetchTidePoints() {
-  console.log("fetchTidePoints started");
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const ts = toCompactDateTime(start);
@@ -1369,13 +1372,10 @@
   let lastError = "Unknown tide error";
   for (const url of urls) {
     try {
-      console.log("Trying tide URL:", url);
       const res = await fetch(url, {
         headers: { Accept: "application/json" }
       });
-      console.log("Tide HTTP status:", res.status, url);
       const text = await res.text();
-      console.log("Tide raw text:", text.slice(0, 1000));
       let data;
       try {
         data = JSON.parse(text);
@@ -1383,8 +1383,6 @@
         throw new Error(`Response was not valid JSON: ${text.slice(0, 200)}`);
       }
       const features = Array.isArray(data?.features) ? data.features : [];
-      console.log("Tide feature count:", features.length);
-      console.log("First tide feature:", features[0]);
       const points = features.map((feature) => {
         const props = feature?.properties || {};
         const coords = Array.isArray(feature?.geometry?.coordinates)
@@ -1416,7 +1414,6 @@
         if (Number.isNaN(time.getTime()) || !Number.isFinite(height)) return null;
         return { time, height };
       }).filter(Boolean).sort((a, b) => a.time - b.time);
-      console.log("Parsed tide points:", points.length);
       if (points.length) return points;
       lastError = `No tide points parsed from response at ${url}`;
     } catch (err) {
