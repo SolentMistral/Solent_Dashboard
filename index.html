@@ -277,12 +277,9 @@
 
     /* WEBCAM PANEL */
     .webcam-panel {
-      padding: 12px;
-      background: #101422;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      gap: 8px;
-    }
+  aspect-ratio: 16 / 9;
+  background: #101422;
+}
 
     .webcam-shell {
       position: relative;
@@ -300,13 +297,10 @@
       background: #101422;
     }
 
-    #solent-cam {
+   #solent-cam {
       width: 100%;
       height: 100%;
-      display: block;
       object-fit: cover;
-      object-position: center center;
-      background: #101422;
     }
 
     .webcam-fallback {
@@ -859,11 +853,8 @@
       </div>
 
       <!-- 3) WEBCAM PANEL -->
-      <div class="panel webcam-panel">
-        <div class="panel-header">
-          <div class="panel-title">Royal Solent YC</div>
-        </div>
-        <div class="webcam-shell">
+    <div class="panel webcam-panel">
+  <div class="webcam-media">
           <div class="webcam-media">
           <video id="solent-cam" autoplay muted playsinline></video>
           <div id="webcam-fallback" class="webcam-fallback">
