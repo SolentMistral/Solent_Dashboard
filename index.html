@@ -40,8 +40,7 @@
       --accent-rain: rgba(120,174,255,0.72);
 
       --top-row-height: calc((100vh - (2 * var(--outer-pad)) - var(--gap)) / 2);
-      --wind-width: var(--top-row-height);
-      --webcam-width: calc(var(--top-row-height) * 16 / 9);
+      --header-h: 34px;
     }
 
     html, body {
@@ -108,19 +107,36 @@
        ========================================================= */
     .top-row {
       display: grid;
-      grid-template-columns: minmax(120px, 1fr) var(--wind-width) var(--webcam-width);
+      grid-template-columns: minmax(160px, 0.84fr) minmax(280px, 1.04fr) minmax(420px, 1.72fr);
       gap: var(--gap);
       min-height: 0;
       height: 100%;
       align-items: stretch;
     }
 
+    .panel-header {
+      min-height: var(--header-h);
+      padding: 2px 2px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      color: var(--text-main);
+    }
+
     /* INFO PANEL */
     .info-panel {
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-      padding: 14px 10px 12px;
+      padding: 12px;
       display: grid;
-      grid-template-rows: 0.9fr 1fr 1.25fr;
+      grid-template-rows: minmax(0, 0.82fr) minmax(0, 0.9fr) minmax(0, 1fr);
       gap: 10px;
       align-items: stretch;
       min-width: 0;
@@ -224,11 +240,11 @@
 
     /* LIVE WIND PANEL */
     .wind-panel {
-      padding: 14px;
+      padding: 12px;
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
-      gap: 10px;
+      gap: 8px;
       min-height: 0;
     }
 
@@ -236,33 +252,45 @@
       position: relative;
       min-height: 0;
       overflow: hidden;
-      border-radius: 16px;
+      border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.05);
       background: linear-gradient(180deg, rgba(32,37,67,0.98) 0%, rgba(23,28,51,0.98) 100%);
     }
 
     .wind-frame {
       position: absolute;
-      left: 44%;
-      top: 49%;
-      width: 126.5%;
-      height: 126.5%;
+      left: 50%;
+      top: 53%;
+      width: 122%;
+      height: 122%;
       border: 0;
       display: block;
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-      transform: translate(-45%, -45%) scale(1.1);
+      transform: translate(-50%, -50%) scale(1.04);
       transform-origin: center center;
       pointer-events: none;
     }
 
     .wind-title {
-      padding: 4px 2px 4px;
+      padding: 2px 2px 4px;
     }
 
     /* WEBCAM PANEL */
     .webcam-panel {
+      padding: 12px;
       background: #101422;
-      aspect-ratio: 16 / 9;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .webcam-shell {
+      position: relative;
+      min-height: 0;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: #101422;
     }
 
     .webcam-media {
@@ -323,18 +351,18 @@
     }
 
     .panel-shell {
-      padding: 14px;
+      padding: 12px;
       background: var(--bg-panel-strong);
       min-height: 0;
     }
 
     .graph-title {
-      padding: 4px 2px 4px;
+      min-height: var(--header-h);
+      padding: 2px 2px 4px;
       display: flex;
       justify-content: flex-start;
-      align-items: baseline;
+      align-items: center;
       gap: 10px;
-      min-height: 26px;
     }
 
     .graph-title-main {
@@ -686,6 +714,39 @@
       line-height: 1;
     }
 
+    @media (max-height: 760px) and (min-width: 700px) {
+      .top-row {
+        grid-template-columns: minmax(148px, 0.82fr) minmax(250px, 1fr) minmax(360px, 1.56fr);
+      }
+
+      .info-panel,
+      .wind-panel,
+      .webcam-panel,
+      .panel-shell {
+        padding: 10px;
+      }
+
+      .panel-header,
+      .graph-title {
+        min-height: 30px;
+        padding-bottom: 2px;
+      }
+
+      .panel-title,
+      .graph-title-main {
+        font-size: 16px;
+      }
+
+      .info-time {
+        font-size: clamp(28px, 3vw, 34px);
+      }
+
+      .moon-svg {
+        width: 74px;
+        height: 74px;
+      }
+    }
+
     /* RESPONSIVE */
     @media (max-height: 750px) and (min-width: 700px) {
       .moon-card {
@@ -724,6 +785,14 @@
       .webcam-panel,
       .panel-shell {
         min-height: 320px;
+      }
+
+      .top-row {
+        height: auto;
+      }
+
+      .webcam-shell {
+        min-height: 260px;
       }
 
       .tide-panel { grid-template-columns: 1fr; }
@@ -775,8 +844,8 @@
 
       <!-- 2) LIVE WIND WIDGET PANEL -->
       <div class="panel wind-panel">
-        <div class="graph-title wind-title">
-          <div class="graph-title-main">Lymington Starting Platform</div>
+        <div class="panel-header wind-title">
+          <div class="panel-title">Lymington Starting Platform</div>
         </div>
         <div class="wind-shell">
           <iframe
@@ -791,7 +860,11 @@
 
       <!-- 3) WEBCAM PANEL -->
       <div class="panel webcam-panel">
-        <div class="webcam-media">
+        <div class="panel-header">
+          <div class="panel-title">Royal Solent YC</div>
+        </div>
+        <div class="webcam-shell">
+          <div class="webcam-media">
           <video id="solent-cam" autoplay muted playsinline></video>
           <div id="webcam-fallback" class="webcam-fallback">
             <div class="webcam-fallback-inner">
@@ -801,6 +874,7 @@
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
