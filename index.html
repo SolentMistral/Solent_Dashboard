@@ -39,9 +39,10 @@
       --accent-gust: rgba(196,206,233,0.58);
       --accent-rain: rgba(120,174,255,0.72);
 
-     --top-row-height: calc((100vh - (2 * var(--outer-pad)) - var(--gap)) / 2);
---wind-width: var(--top-row-height);
---webcam-width: calc(var(--top-row-height) * 16 / 9);
+      --top-row-height: calc((100vh - (2 * var(--outer-pad)) - var(--gap)) / 2);
+      --wind-width: var(--top-row-height);
+      --webcam-width: calc(var(--top-row-height) * 16 / 9);
+      --header-h: 34px;
     }
 
     html, body {
@@ -106,17 +107,19 @@
        2. Live wind widget panel
        3. Webcam panel
        ========================================================= */
-   .top-row {
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) var(--wind-width) var(--webcam-width);
-  gap: var(--gap);
-  min-height: 0;
-  height: 100%;
-  align-items: stretch;
-}
-  .top-row > .panel {
-  min-width: 0;
-}
+    .top-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) var(--wind-width) var(--webcam-width);
+      gap: var(--gap);
+      min-height: 0;
+      height: 100%;
+      align-items: stretch;
+    }
+
+    .top-row > .panel {
+      min-width: 0;
+    }
+
     .panel-header {
       min-height: var(--header-h);
       padding: 2px 2px 4px;
@@ -243,14 +246,13 @@
 
     /* LIVE WIND PANEL */
     .wind-panel {
-      min-width: 0;
       padding: 12px;
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
       gap: 8px;
       min-height: 0;
-    } 
+    }
 
     .wind-shell {
       position: relative;
@@ -281,12 +283,14 @@
 
     /* WEBCAM PANEL */
     .webcam-panel {
-  min-width: 0;
-  background: #101422;
-}
+      padding: 12px;
+      background: #101422;
+      min-width: 0;
+    }
 
     .webcam-shell {
       position: relative;
+      height: 100%;
       min-height: 0;
       border-radius: 18px;
       overflow: hidden;
@@ -295,17 +299,19 @@
     }
 
     .webcam-media {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background: #101422;
-  border-radius: 18px;
-}
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: #101422;
+    }
 
-   #solent-cam {
+    #solent-cam {
       width: 100%;
       height: 100%;
+      display: block;
       object-fit: cover;
+      object-position: center center;
+      background: #101422;
     }
 
     .webcam-fallback {
@@ -715,7 +721,7 @@
 
     @media (max-height: 760px) and (min-width: 700px) {
       .top-row {
-        grid-template-columns: minmax(148px, 0.82fr) minmax(250px, 1fr) minmax(360px, 1.56fr);
+        grid-template-columns: minmax(120px, 1fr) var(--wind-width) var(--webcam-width);
       }
 
       .info-panel,
@@ -858,8 +864,8 @@
       </div>
 
       <!-- 3) WEBCAM PANEL -->
-    <div class="panel webcam-panel">
-  <div class="webcam-media">
+      <div class="panel webcam-panel">
+        <div class="webcam-shell">
           <div class="webcam-media">
           <video id="solent-cam" autoplay muted playsinline></video>
           <div id="webcam-fallback" class="webcam-fallback">
