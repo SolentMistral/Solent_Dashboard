@@ -114,7 +114,9 @@
   height: 100%;
   align-items: stretch;
 }
-
+  .top-row > .panel {
+  min-width: 0;
+}
     .panel-header {
       min-height: var(--header-h);
       padding: 2px 2px 4px;
@@ -241,13 +243,14 @@
 
     /* LIVE WIND PANEL */
     .wind-panel {
+      min-width: 0;
       padding: 12px;
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
       gap: 8px;
       min-height: 0;
-    }
+    } 
 
     .wind-shell {
       position: relative;
@@ -278,7 +281,7 @@
 
     /* WEBCAM PANEL */
     .webcam-panel {
-  aspect-ratio: 16 / 9;
+  min-width: 0;
   background: #101422;
 }
 
@@ -292,11 +295,12 @@
     }
 
     .webcam-media {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      background: #101422;
-    }
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #101422;
+  border-radius: 18px;
+}
 
    #solent-cam {
       width: 100%;
