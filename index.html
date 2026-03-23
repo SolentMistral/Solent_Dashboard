@@ -39,8 +39,9 @@
       --accent-gust: rgba(196,206,233,0.58);
       --accent-rain: rgba(120,174,255,0.72);
 
-      --top-row-height: calc((100vh - (2 * var(--outer-pad)) - var(--gap)) / 2);
-      --header-h: 34px;
+     --top-row-height: calc((100vh - (2 * var(--outer-pad)) - var(--gap)) / 2);
+--wind-width: var(--top-row-height);
+--webcam-width: calc(var(--top-row-height) * 16 / 9);
     }
 
     html, body {
@@ -105,14 +106,14 @@
        2. Live wind widget panel
        3. Webcam panel
        ========================================================= */
-    .top-row {
-      display: grid;
-      grid-template-columns: minmax(160px, 0.84fr) minmax(280px, 1.04fr) minmax(420px, 1.72fr);
-      gap: var(--gap);
-      min-height: 0;
-      height: 100%;
-      align-items: stretch;
-    }
+   .top-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) var(--wind-width) var(--webcam-width);
+  gap: var(--gap);
+  min-height: 0;
+  height: 100%;
+  align-items: stretch;
+}
 
     .panel-header {
       min-height: var(--header-h);
