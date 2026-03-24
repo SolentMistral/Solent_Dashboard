@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -12,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-/* =========================================================
+    /* =========================================================
        GLOBAL RESET + SHARED DESIGN TOKENS
        ========================================================= */
     * { box-sizing: border-box; }
@@ -44,7 +42,6 @@
       --top-row-height: calc((100vh - (2 * var(--outer-pad)) - var(--gap)) / 2);
       --wind-width: var(--top-row-height);
       --webcam-width: calc(var(--top-row-height) * 16 / 9);
-      --header-h: 34px;
     }
 
     html, body {
@@ -89,33 +86,18 @@
     }
 
     .mode-chip {
-      position: static;
-      flex: 0 0 auto;
-      padding: 4px 8px;
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      z-index: 6;
+      padding: 5px 9px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(223,231,251,0.90);
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
-      line-height: 1;
-    }
-
-    .panel-chip {
-      position: static;
-      flex: 0 0 auto;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(223,231,251,0.90);
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.09em;
-      text-transform: uppercase;
-      line-height: 1;
+      background: var(--bg-chip);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: #dfe7fb;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
     }
 
     /* =========================================================
@@ -133,36 +115,13 @@
       align-items: stretch;
     }
 
-    .top-row > .panel { min-width: 0; }
-
-    .panel-header {
-      min-height: var(--header-h);
-      padding: 2px 2px 6px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .panel-title {
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1;
-      letter-spacing: 0.01em;
-      color: var(--text-main);
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
     /* INFO PANEL */
     .info-panel {
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-      padding: 12px;
+      padding: 14px 10px 12px;
       display: grid;
-      grid-template-rows: minmax(0, 0.88fr) minmax(0, 0.74fr) minmax(0, 1fr);
-      gap: 8px;
+      grid-template-rows: 0.9fr 1fr 1.25fr;
+      gap: 10px;
       align-items: stretch;
       min-width: 0;
     }
@@ -188,10 +147,10 @@
       border-radius: 18px;
       background: var(--bg-panel-soft);
       border: 1px solid rgba(255,255,255,0.05);
-      padding: 10px 10px;
+      padding: 12px 10px;
       display: grid;
       align-content: center;
-      gap: 6px;
+      gap: 10px;
       min-width: 0;
     }
 
@@ -203,7 +162,7 @@
     }
 
     .sun-label {
-      font-size: 12px;
+      font-size: 14px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--text-muted);
@@ -212,7 +171,7 @@
     }
 
     .sun-value {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 500;
       letter-spacing: 0.03em;
       color: var(--text-main);
@@ -224,32 +183,31 @@
       border-radius: 18px;
       background: linear-gradient(180deg, rgba(35,40,72,0.98) 0%, rgba(27,32,58,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.05);
-      padding: 8px;
+      padding: 10px;
       display: grid;
       grid-template-rows: auto auto auto;
       justify-items: center;
-      align-content: start;
+      align-content: center;
       text-align: center;
-      gap: 2px;
+      gap: 0;
       min-height: 0;
       min-width: 0;
     }
 
     .moon-svg {
-      width: 78px;
-      height: 78px;
+      width: 95px;
+      height: 95px;
       display: block;
       filter: drop-shadow(0 0 10px rgba(255,255,255,0.18));
-      margin-bottom: -2px;
     }
 
     .moon-name,
     .moon-illumination {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
       letter-spacing: 0.04em;
       color: var(--text-main);
-      line-height: 1.1;
+      line-height: 1.15;
     }
 
     .moon-illumination {
@@ -266,64 +224,61 @@
 
     /* LIVE WIND PANEL */
     .wind-panel {
-      padding: 12px;
-      background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr);
-      gap: 6px;
-      min-height: 0;
-    }
+  padding: 14px 14px 10px;
+  background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 4px;
+  min-height: 0;
+}
 
     .wind-shell {
       position: relative;
       min-height: 0;
       overflow: hidden;
-      border-radius: 18px;
+      border-radius: 16px;
       border: 1px solid rgba(255,255,255,0.05);
       background: linear-gradient(180deg, rgba(32,37,67,0.98) 0%, rgba(23,28,51,0.98) 100%);
     }
 
     .wind-frame {
       position: absolute;
-      left: 50%;
-      top: 49%;
-      width: 146%;
-      height: 146%;
+      left: 34%;
+      top: 26%;
+      width: 138.2%;
+      height: 138.2%;
       border: 0;
       display: block;
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-      transform: translate(-50%, -50%) scale(1.02);
+      transform: translate(-38%, -38%) scale(1.1);
       transform-origin: center center;
       pointer-events: none;
     }
 
-    .wind-title { padding: 2px 2px 2px; }
+    .wind-title {
+      padding: 4px 2px 4px;
+    }
 
     /* WEBCAM PANEL */
     .webcam-panel {
-      padding: 0;
-      background: #000;
-      overflow: hidden;
-      border: none;
-      box-shadow: none;
-      border-radius: 18px;
-      position: relative;
-      min-width: 0;
+      background: #101422;
+      aspect-ratio: 16 / 9;
     }
 
     .webcam-media {
       position: absolute;
       inset: 0;
       overflow: hidden;
-      background: #000;
-      border-radius: inherit;
+      background: #101422;
     }
 
     #solent-cam {
       width: 100%;
       height: 100%;
-      object-fit: cover;
       display: block;
+      object-fit: cover;
+      object-position: center center;
+      background: #101422;
     }
 
     .webcam-fallback {
@@ -356,28 +311,30 @@
     }
 
     /* =========================================================
-       BOTTOM ROW PANELS
+       BOTTOM ROW
+       1. Tide panel
+       2. Forecast panel
        ========================================================= */
     .bottom-row {
       display: grid;
-      grid-template-columns: 1.08fr 0.92fr;
+      grid-template-columns: 1fr 1fr;
       gap: var(--gap);
       min-height: 0;
     }
 
     .panel-shell {
-      padding: 12px;
+      padding: 14px;
       background: var(--bg-panel-strong);
       min-height: 0;
     }
 
     .graph-title {
-      min-height: var(--header-h);
-      padding: 2px 2px 6px;
+      padding: 4px 2px 4px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
+      align-items: baseline;
       gap: 10px;
+      min-height: 26px;
     }
 
     .graph-title-main {
@@ -386,10 +343,6 @@
       line-height: 1;
       letter-spacing: 0.01em;
       color: var(--text-main);
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .chart-card {
@@ -401,11 +354,83 @@
       overflow: hidden;
     }
 
+    .mini-card {
+      border-radius: 14px;
+      background: var(--bg-panel-soft);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 10px 11px 9px;
+      display: grid;
+      gap: 4px;
+      align-content: center;
+      min-width: 0;
+    }
+
+    .mini-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .mini-main {
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.05;
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    .mini-main.inline {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-side {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-soft);
+    }
+
+    .side-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .list-card {
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 8px;
+      border-radius: 16px;
+      background: var(--bg-panel-soft);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 10px;
+      align-self: start;
+    }
+
+    .list-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .list-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
     /* TIDE PANEL */
     .tide-panel {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 112px;
-      gap: 8px;
+      grid-template-columns: minmax(0, 1fr) 146px;
+      gap: 10px;
     }
 
     .tide-main {
@@ -413,8 +438,8 @@
       min-height: 0;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      gap: 8px;
-      padding-top: 2px;
+      gap: 10px;
+      padding-top: 4px;
     }
 
     .chart-wrap {
@@ -429,7 +454,7 @@
 
     .y-axis {
       color: var(--text-muted);
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 700;
       letter-spacing: 0.01em;
     }
@@ -437,18 +462,30 @@
     .tide-y-axis {
       display: grid;
       grid-template-rows: repeat(5, 1fr);
-      align-items: center;
+      align-items: stretch;
       text-align: right;
       padding-top: 18px;
-      padding-bottom: 18px;
+      padding-bottom: 4px;
     }
+
+    .tide-y-axis div,
+    .forecast-wind-axis div,
+    .forecast-rain-axis div {
+      display: flex;
+      align-items: center;
+      transform: translateY(-50%);
+    }
+
+    .tide-y-axis div { justify-content: flex-end; }
 
     .svg-wrap {
-      position: relative;
+      min-width: 0;
       min-height: 0;
+      position: relative;
     }
 
-    .tide-svg {
+    .tide-svg,
+    .forecast-svg {
       width: 100%;
       height: 100%;
       display: block;
@@ -457,61 +494,21 @@
     .x-axis {
       grid-column: 2;
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 0;
-      padding: 6px 0 2px;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
       color: var(--text-muted);
-      font-size: 11px;
+      font-size: 9px;
       font-weight: 700;
+      letter-spacing: 0.02em;
       text-align: center;
+      margin-top: -2px;
     }
 
     .bottom-meta {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
+      gap: 8px;
       min-height: 0;
-    }
-
-    .mini-card {
-      border-radius: 14px;
-      background: var(--bg-panel-soft);
-      border: 1px solid rgba(255,255,255,0.05);
-      padding: 8px 10px 7px;
-      display: grid;
-      gap: 3px;
-      align-content: center;
-      min-width: 0;
-    }
-
-    .mini-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    .mini-main {
-      font-size: 15px;
-      font-weight: 500;
-      line-height: 1.1;
-      color: var(--text-main);
-      min-width: 0;
-    }
-
-    .mini-main.inline {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .mini-side {
-      font-size: 12px;
-      font-weight: 700;
-      color: rgba(243,245,251,0.82);
-      white-space: nowrap;
     }
 
     .tide-side {
@@ -519,124 +516,78 @@
       display: grid;
       grid-template-rows: auto;
       align-content: start;
-      padding-top: 18px;
-    }
-
-    .list-card {
-      display: grid;
-      grid-template-rows: auto auto;
-      gap: 6px;
-      border-radius: 14px;
-      background: var(--bg-panel-soft);
-      border: 1px solid rgba(255,255,255,0.05);
-      padding: 8px;
-      align-self: start;
-    }
-
-    .list-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 8px;
-    }
-
-    .side-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.10em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    .list-sub {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-muted);
+      padding-top: 34px;
     }
 
     .event-list {
       display: grid;
-      gap: 6px;
+      gap: 7px;
+      align-content: start;
     }
 
     .event-row {
-      border-radius: 10px;
+      border-radius: 12px;
       background: linear-gradient(180deg, rgba(44,49,84,0.98) 0%, rgba(31,36,64,0.98) 100%);
       border: 1px solid rgba(255,255,255,0.05);
-      padding: 6px 8px;
+      padding: 8px 10px 7px;
       display: grid;
-      grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
-      column-gap: 10px;
-      row-gap: 2px;
-      align-items: start;
-      min-width: 0;
+      gap: 2px;
     }
 
     .event-type {
-      grid-column: 1;
-      grid-row: 1;
       font-size: 9px;
-      font-weight: 800;
+      font-weight: 700;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--text-muted);
-      line-height: 1;
     }
 
     .event-time {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      justify-self: end;
-      align-self: center;
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.02;
-      letter-spacing: 0.02em;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.05;
       color: var(--text-main);
-      white-space: nowrap;
     }
 
     .event-height {
-      grid-column: 1;
-      grid-row: 2;
-      font-size: 11px;
-      color: rgba(243,245,251,0.86);
-      font-weight: 600;
-      line-height: 1.05;
-      white-space: nowrap;
+      font-size: 12px;
+      color: var(--text-soft);
+      font-weight: 500;
+      line-height: 1.1;
     }
 
-    /* FORECAST PANEL */
+    /* FORECAST PANEL
+       Notes:
+       - top padding slightly increased so title baseline matches tide title
+       - weather band lifted slightly so icons / temps are less cramped
+       - wind plot given more vertical space than rain plot
+       - bottom time axis has its own protected row
+    */
     .forecast-panel {
       min-width: 0;
       min-height: 0;
       display: grid;
       grid-template-rows: auto 1fr;
-      gap: 8px;
-      padding-top: 2px;
+      gap: 10px;
+      padding-top: 12px;
     }
 
     .forecast-chart-wrap {
       position: absolute;
       inset: 0;
-      padding: 14px 12px 12px 10px;
+      padding: 18px 12px 12px 10px;
       display: grid;
-      grid-template-columns: 60px 1fr 60px;
-      grid-template-rows:
-        68px
-        minmax(150px, 2.4fr)
-        minmax(78px, 1.2fr)
-        34px;
-      gap: 8px 8px;
+      grid-template-columns: 66px 1fr 64px;
+      grid-template-rows: 78px minmax(0, 2.35fr) 76px 38px;
+      gap: 0 8px;
     }
 
     .forecast-weather-band {
       grid-column: 2;
       grid-row: 1;
       display: grid;
-      align-items: center;
-      padding: 2px 0 6px;
+      align-items: end;
+      padding-bottom: 14px;
     }
 
     .forecast-weather-grid,
@@ -651,15 +602,15 @@
       display: grid;
       justify-items: center;
       align-content: center;
-      gap: 6px;
-      transform: translateY(0);
+      gap: 8px;
+      transform: translateY(-8px);
     }
 
     .forecast-weather-icon {
       font-size: 28px;
       line-height: 1;
       filter: drop-shadow(0 1px 0 rgba(0,0,0,0.35));
-      transform: translateY(0);
+      transform: translateY(-1px);
     }
 
     .forecast-weather-temp {
@@ -667,14 +618,14 @@
       font-weight: 700;
       color: #ffd9a6;
       line-height: 1;
-      transform: translateY(0);
+      transform: translateY(-1px);
     }
 
     .forecast-wind-axis {
       grid-column: 1;
       grid-row: 2;
       display: grid;
-      grid-auto-rows: 1fr;
+      grid-template-rows: repeat(4, 1fr);
       text-align: right;
       padding-top: 16px;
       padding-bottom: 8px;
@@ -689,7 +640,7 @@
       grid-column: 3;
       grid-row: 3;
       display: grid;
-      grid-auto-rows: 1fr;
+      grid-template-rows: repeat(3, 1fr);
       color: #86b7ff;
       font-size: 12px;
       font-weight: 700;
@@ -707,7 +658,6 @@
       grid-row: 2;
       position: relative;
       min-height: 0;
-      overflow: hidden;
     }
 
     .forecast-rain-svg-wrap {
@@ -715,7 +665,6 @@
       grid-row: 3;
       position: relative;
       min-height: 0;
-      overflow: hidden;
     }
 
     .forecast-time-band {
@@ -735,56 +684,31 @@
       line-height: 1;
     }
 
-    .forecast-svg {
-      width: 100%;
-      height: 100%;
+
+    .status-note {
+      position: absolute;
+      left: 14px;
+      bottom: 10px;
+      z-index: 7;
+      max-width: calc(100% - 28px);
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: rgba(7,17,28,0.68);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-soft);
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.25;
+      display: none;
+      pointer-events: none;
+    }
+
+    .status-note.show {
       display: block;
     }
 
-    /* SHORT-HEIGHT LANDSCAPE (tablet-style) */
-    @media (max-height: 820px) and (min-width: 700px) {
-      :root { --gap: 10px; --outer-pad: 10px; }
-
-      .info-panel { gap: 7px; }
-      .info-sun-card { padding: 9px 9px; gap: 5px; }
-      .sun-label { font-size: 11px; letter-spacing: 0.12em; }
-      .sun-value { font-size: 15px; }
-
-      .moon-card { padding: 7px; }
-      .moon-svg { width: 72px; height: 72px; margin-bottom: -3px; }
-      .moon-name, .moon-illumination { font-size: 12px; line-height: 1.05; }
-      .moon-illumination::before { display: none; }
-
-      .wind-panel { gap: 5px; }
-      .wind-frame { width: 150%; height: 150%; top: 48%; }
-
-      .panel-shell { padding: 10px; }
-
-      .tide-panel { grid-template-columns: minmax(0, 1fr) 108px; gap: 8px; }
-      .tide-main { gap: 7px; }
-      .bottom-meta { gap: 6px; }
-      .mini-card { padding: 7px 9px 6px; }
-      .mini-main { font-size: 14px; }
-      .mini-side { font-size: 11px; }
-
-      .forecast-panel { gap: 7px; padding-top: 0; }
-      .forecast-chart-wrap {
-        padding: 12px 10px 10px 10px;
-        grid-template-rows:
-          62px
-          minmax(132px, 2.25fr)
-          minmax(68px, 1.1fr)
-          30px;
-        gap: 6px 8px;
-      }
-      .forecast-weather-icon { font-size: 26px; }
-      .forecast-weather-temp { font-size: 14px; }
-
-      /* Simplification: hide least-critical tide range in cramped heights */
-      .mini-card.range-card { display: none; }
-    }
-
-    @media (max-width: 700px) {
+    /* RESPONSIVE */
+    @media (max-width: 1100px) {
       html, body { overflow: auto; }
 
       .dashboard {
@@ -793,21 +717,22 @@
         grid-template-rows: auto auto;
       }
 
-      .top-row {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        height: auto;
-      }
-
-      .wind-panel,
-      .webcam-panel {
-        aspect-ratio: 16 / 9;
-        width: 100%;
-      }
-
+      .top-row,
       .bottom-row {
         grid-template-columns: 1fr;
       }
+
+      .info-panel,
+      .wind-panel,
+      .webcam-panel,
+      .panel-shell {
+        min-height: 320px;
+      }
+
+      .tide-panel { grid-template-columns: 1fr; }
+      .tide-side { padding-top: 0; }
+      .chart-card { min-height: 340px; }
+      .bottom-meta { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -817,44 +742,44 @@
          TOP ROW
          ====================================================== -->
     <div class="top-row">
-      <!-- 1) INFO PANEL -->
+      <!-- 1) INFO / CLOCK / SUN / MOON PANEL -->
       <div class="panel info-panel">
         <div class="info-time-block">
-          <div class="info-time" id="clock">--:--</div>
+          <div class="info-time" id="info-time">--:--</div>
         </div>
 
         <div class="info-sun-card">
           <div class="sun-row">
-            <div class="sun-label">Sunrise</div>
-            <div class="sun-value" id="sunrise">--:--</div>
+            <span class="sun-label">Sunrise</span>
+            <span class="sun-value" id="sunrise-time">--:--</span>
           </div>
           <div class="sun-row">
-            <div class="sun-label">Sunset</div>
-            <div class="sun-value" id="sunset">--:--</div>
+            <span class="sun-label">Sunset</span>
+            <span class="sun-value" id="sunset-time">--:--</span>
           </div>
         </div>
 
         <div class="moon-card">
-          <svg class="moon-svg" id="moon-svg" viewBox="0 0 100 100" aria-label="Moon phase">
+          <svg id="moon-icon" viewBox="0 0 100 100" class="moon-svg" aria-label="Moon phase">
             <defs>
-              <clipPath id="moonClip">
-                <circle cx="50" cy="50" r="45"></circle>
-              </clipPath>
+              <radialGradient id="moonGlow" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"></stop>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+              </radialGradient>
             </defs>
-            <circle cx="50" cy="50" r="45" fill="#0c0d14"></circle>
-            <path id="moon-lit" d="" fill="#f7f3e8" clip-path="url(#moonClip)"></path>
-            <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="2"></circle>
+            <circle cx="50" cy="50" r="38" fill="url(#moonGlow)"></circle>
+            <circle cx="50" cy="50" r="30" fill="#111528" stroke="rgba(255,255,255,0.16)"></circle>
+            <path id="moon-shape" d="" fill="#f6f7fb"></path>
           </svg>
-          <div class="moon-name" id="moon-name">--</div>
-          <div class="moon-illumination" id="moon-illum">--%</div>
+          <div class="moon-name" id="moon-name">Waxing Gibbous</div>
+          <div class="moon-illumination" id="moon-illumination">76%</div>
         </div>
       </div>
 
-      <!-- 2) LIVE WIND PANEL -->
+      <!-- 2) LIVE WIND WIDGET PANEL -->
       <div class="panel wind-panel">
-        <div class="panel-header wind-title">
-          <div class="panel-title">Lymington Starting Platform</div>
-          <div class="panel-chip">Live</div>
+        <div class="graph-title wind-title">
+          <div class="graph-title-main">Lymington Starting Platform</div>
         </div>
         <div class="wind-shell">
           <iframe
@@ -881,19 +806,20 @@
           </div>
         </div>
       </div>
-
     </div>
 
     <!-- ======================================================
-         BOTTOM ROW
+         COMPLETE BOTTOM ROW
          ====================================================== -->
     <div class="bottom-row">
       <!-- 4) TIDE PANEL -->
       <div class="panel panel-shell tide-panel">
+        <div class="mode-chip">Live API</div>
+        <div class="status-note" id="tide-status-note"></div>
+
         <div class="tide-main">
-          <div class="panel-header">
-            <div class="panel-title">Lymington Tides</div>
-            <div class="mode-chip" role="status" aria-live="polite">Live API</div>
+          <div class="graph-title">
+            <div class="graph-title-main">Lymington Tides</div>
           </div>
 
           <div class="chart-card">
@@ -911,7 +837,7 @@
                   <g id="tide-grid-layer"></g>
                   <path id="tide-fill-path" d="" fill="url(#tideFill)"></path>
                   <path id="tide-line-path" d="" fill="none" stroke="#dce9ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                  <line id="tide-now-line" x1="0" y1="28" x2="0" y2="360" stroke="var(--accent-coral)" stroke-width="2.2" stroke-dasharray="6 6"></line>
+                  <line id="tide-now-line" x1="0" y1="28" x2="0" y2="350" stroke="var(--accent-coral)" stroke-width="2.2" stroke-dasharray="6 6"></line>
                   <circle id="tide-now-dot-glow" cx="0" cy="0" r="18" fill="var(--accent-coral-soft)"></circle>
                   <circle id="tide-now-dot" cx="0" cy="0" r="6" fill="var(--accent-coral)"></circle>
                   <g id="tide-label-layer"></g>
@@ -923,11 +849,10 @@
           </div>
 
           <div class="bottom-meta">
-            <div class="mini-card mini-now">
-              <div class="mini-label">Now</div>
+            <div class="mini-card">
               <div class="mini-main inline">
-                <span id="tide-now-height">--.-m</span>
-                <span class="mini-side" id="tide-state">--</span>
+                <span id="tide-state">--</span>
+                <span class="mini-side" id="range-percent">--%</span>
               </div>
             </div>
 
@@ -939,7 +864,7 @@
               </div>
             </div>
 
-            <div class="mini-card range-card">
+            <div class="mini-card">
               <div class="mini-label">Range</div>
               <div class="mini-main" id="range-main">--.-m</div>
             </div>
@@ -950,6 +875,7 @@
           <div class="list-card">
             <div class="list-head">
               <div class="side-label">Today’s Tides</div>
+              <div class="list-sub" id="tide-events-sub">0 tides</div>
             </div>
             <div class="event-list" id="tide-event-list"></div>
           </div>
@@ -958,31 +884,33 @@
 
       <!-- 5) FORECAST PANEL -->
       <div class="panel panel-shell forecast-panel">
-        <div class="panel-header">
-          <div class="panel-title">Forecast</div>
-          <div class="mode-chip" role="status" aria-live="polite">Live API</div>
+        <div class="mode-chip">Live API</div>
+        <div class="status-note" id="forecast-status-note"></div>
+
+        <div class="graph-title">
+          <div class="graph-title-main">Forecast</div>
         </div>
 
         <div class="chart-card">
           <div class="forecast-chart-wrap">
-            <!-- weather band -->
+            <!-- 5a) weather code icons + temperatures -->
             <div class="forecast-weather-band">
               <div class="forecast-weather-grid" id="forecast-weather-grid"></div>
             </div>
 
-            <!-- wind -->
+            <!-- 5b) wind axis, wind line and gust line -->
             <div class="forecast-wind-axis" id="forecast-wind-axis"></div>
             <div class="forecast-wind-svg-wrap">
               <svg class="forecast-svg" id="forecast-wind-svg" viewBox="0 0 1000 250" preserveAspectRatio="none" aria-label="Wind and gust graph"></svg>
             </div>
 
-            <!-- rain -->
+            <!-- 5c) rain bars and rain axis -->
             <div class="forecast-rain-svg-wrap">
               <svg class="forecast-svg" id="forecast-rain-svg" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-label="Rain graph"></svg>
             </div>
             <div class="forecast-rain-axis" id="forecast-rain-axis"></div>
 
-            <!-- time -->
+            <!-- 5d) bottom time axis -->
             <div class="forecast-time-band">
               <div class="forecast-time-grid" id="forecast-time-grid"></div>
             </div>
@@ -999,245 +927,244 @@
        ========================================================= */
     const WEBCAM_STREAM = "https://camsecure.uk/HLS/royalsolent.m3u8";
     const LYMINGTON = { lat: 50.7592, lon: -1.5383 };
-    const FORECAST_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,rain,wind_speed_10m,wind_gusts_10m,weathercode&models=ukmo_seamless&timezone=auto&forecast_days=1&wind_speed_unit=kn";
+    const FORECAST_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,precipitation_probability,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&models=ukmo_uk_deterministic_2km&timezone=Europe%2FLondon&forecast_days=1&wind_speed_unit=kn";
     const TIDE_API_KEY = "b8a696396eec2787361f6a4e67951fd8";
     const TIDE_SENSOR_ID = 87;
-    const SHORT_LANDSCAPE_HEIGHT = 820;
 
-    function isShortLandscape() {
-      return window.innerWidth >= 700 && window.innerHeight <= SHORT_LANDSCAPE_HEIGHT;
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
     }
-
-    function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
 
     function formatTime(date) {
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return new Date(date).toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
     }
 
-    function hourOnlyLabel(raw) {
-      const [h] = raw.split(":");
-      return `${h}:00`;
+    function formatTimeLocal(value) {
+      const d = new Date(value);
+      return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     }
 
-    function toCompactDateTime(date) {
-      const pad = n => String(n).padStart(2, "0");
-      return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}#${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    function hourOnlyLabel(value) {
+      const parts = String(value).split(":");
+      return (parts[0] || "00").padStart(2, "0");
     }
 
-    function parseApiDate(value) {
-      if (value instanceof Date) return value;
-
-      if (typeof value === "string") {
-        if (/^\d{8}#\d{6}$/.test(value)) {
-          return new Date(
-            `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T` +
-            `${value.slice(9, 11)}:${value.slice(11, 13)}:${value.slice(13, 15)}`
-          );
-        }
-
-        if (/^\d{14}$/.test(value)) {
-          return new Date(
-            `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T` +
-            `${value.slice(8, 10)}:${value.slice(10, 12)}:${value.slice(12, 14)}`
-          );
-        }
+    function setStatusNote(id, message) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!message) {
+        el.textContent = "";
+        el.classList.remove("show");
+        return;
       }
+      el.textContent = message;
+      el.classList.add("show");
+    }
 
-      return new Date(value);
+    function safeArrayLength(value) {
+      return Array.isArray(value) ? value.length : 0;
     }
 
     /* =========================================================
-       CLOCK + ASTRONOMY
+       TOP ROW LOGIC
        ========================================================= */
     function updateClock() {
-      document.getElementById("clock").textContent =
-        new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    }
-
-    function calcMoonPhase(date) {
-      const knownNewMoon = new Date("2000-01-06T18:14:00Z").getTime();
-      const synodic = 29.530588853;
-      const days = (date.getTime() - knownNewMoon) / (1000 * 60 * 60 * 24);
-      let phase = (days % synodic) / synodic;
-      if (phase < 0) phase += 1;
-      return phase;
-    }
-
-    function moonName(phase) {
-      const p = phase;
-      if (p < 0.03 || p > 0.97) return "New Moon";
-      if (p < 0.22) return "Waxing Crescent";
-      if (p < 0.28) return "First Quarter";
-      if (p < 0.47) return "Waxing Gibbous";
-      if (p < 0.53) return "Full Moon";
-      if (p < 0.72) return "Waning Gibbous";
-      if (p < 0.78) return "Last Quarter";
-      return "Waning Crescent";
-    }
-
-    function renderMoonSVG(phase) {
-      const lit = document.getElementById("moon-lit");
-      const waxing = phase < 0.5;
-      const t = waxing ? phase / 0.5 : (phase - 0.5) / 0.5;
-      const k = waxing ? (1 - t) : t;
-      const r = 45;
-      const cx = 50;
-      const cy = 50;
-      const offset = (k * 2 - 1) * r;
-      const sweep = waxing ? 1 : 0;
-
-      const d = `
-        M ${cx - r} ${cy}
-        A ${r} ${r} 0 1 0 ${cx + r} ${cy}
-        A ${Math.abs(offset)} ${r} 0 1 ${sweep} ${cx - r} ${cy}
-        Z
-      `;
-      lit.setAttribute("d", d);
-      const illum = waxing ? t : (1 - t);
-      document.getElementById("moon-illum").textContent = `${Math.round(illum * 100)}%`;
-      document.getElementById("moon-name").textContent = moonName(phase);
-    }
-
-    function refreshAstronomy() {
       const now = new Date();
-      const sunTimes = SunCalc.getTimes(now, LYMINGTON.lat, LYMINGTON.lon);
-      document.getElementById("sunrise").textContent = formatTime(sunTimes.sunrise);
-      document.getElementById("sunset").textContent = formatTime(sunTimes.sunset);
-      const phase = calcMoonPhase(now);
-      renderMoonSVG(phase);
+      document.getElementById("info-time").textContent = now.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
     }
 
-    /* =========================================================
-       WEBCAM
-       ========================================================= */
+    function moonInfoForDate(date = new Date()) {
+      const synodicMonth = 29.53058867;
+      const knownNewMoon = new Date("2000-01-06T18:14:00Z");
+      const days = (date - knownNewMoon) / 86400000;
+      const phase = ((days % synodicMonth) + synodicMonth) % synodicMonth;
+      const fraction = phase / synodicMonth;
+      const illumination = Math.round((1 - Math.cos(2 * Math.PI * fraction)) * 50);
+
+      let name = "New Moon";
+      if (fraction < 0.03 || fraction > 0.97) name = "New Moon";
+      else if (fraction < 0.22) name = "Waxing Crescent";
+      else if (fraction < 0.28) name = "First Quarter";
+      else if (fraction < 0.47) name = "Waxing Gibbous";
+      else if (fraction < 0.53) name = "Full Moon";
+      else if (fraction < 0.72) name = "Waning Gibbous";
+      else if (fraction < 0.78) name = "Last Quarter";
+      else name = "Waning Crescent";
+
+      return { fraction, illumination, name };
+    }
+
+    function drawMoon(fraction) {
+      const r = 30, cx = 50, cy = 50;
+      const waxing = fraction <= 0.5;
+      const phaseAngle = Math.cos(2 * Math.PI * fraction);
+      const rx = Math.abs(phaseAngle) * r;
+      const d = waxing
+        ? `M ${cx} ${cy-r} A ${r} ${r} 0 1 1 ${cx} ${cy+r} A ${rx} ${r} 0 1 0 ${cx} ${cy-r} Z`
+        : `M ${cx} ${cy-r} A ${rx} ${r} 0 1 1 ${cx} ${cy+r} A ${r} ${r} 0 1 0 ${cx} ${cy-r} Z`;
+      document.getElementById("moon-shape").setAttribute("d", d);
+    }
+
+    async function refreshAstronomy() {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LYMINGTON.lat}&longitude=${LYMINGTON.lon}&daily=sunrise,sunset&timezone=Europe%2FLondon`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Astronomy API HTTP ${res.status}`);
+        const data = await res.json();
+        document.getElementById("sunrise-time").textContent = formatTimeLocal(data.daily.sunrise[0]);
+        document.getElementById("sunset-time").textContent = formatTimeLocal(data.daily.sunset[0]);
+      } catch (err) {
+        console.error("Astronomy refresh failed", err);
+      }
+
+      const moon = moonInfoForDate(new Date());
+      document.getElementById("moon-name").textContent = moon.name;
+      document.getElementById("moon-illumination").textContent = `${moon.illumination}%`;
+      drawMoon(moon.fraction);
+    }
+
+    function showWebcamFallback() {
+      document.getElementById("webcam-fallback").classList.add("show");
+    }
+
     function initWebcam() {
       const video = document.getElementById("solent-cam");
-      const fallback = document.getElementById("webcam-fallback");
-      if (!video) return;
 
-      if (Hls.isSupported()) {
-        const hls = new Hls({ maxBufferLength: 12 });
+      if (window.Hls && Hls.isSupported()) {
+        const hls = new Hls({ maxBufferLength: 30, liveSyncDurationCount: 3 });
         hls.loadSource(WEBCAM_STREAM);
         hls.attachMedia(video);
-        hls.on(Hls.Events.ERROR, () => fallback.classList.add("show"));
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error("HLS error:", data);
+          if (data && data.fatal) showWebcamFallback();
+        });
+        video.addEventListener("error", showWebcamFallback);
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = WEBCAM_STREAM;
+        video.addEventListener("loadedmetadata", () => video.play().catch(() => {}));
+        video.addEventListener("error", showWebcamFallback);
       } else {
-        fallback.classList.add("show");
+        showWebcamFallback();
       }
     }
 
     /* =========================================================
-       TIDE PANEL
+       TIDE PANEL DATA + LOGIC
        ========================================================= */
-    async function fetchTidePoints() {
-      const dayStart = new Date();
+    function generateTodaySampleTide() {
+      const now = new Date();
+      const dayStart = new Date(now);
       dayStart.setHours(0, 0, 0, 0);
 
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
-
-      const ts = toCompactDateTime(dayEnd);
-      const url = `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${encodeURIComponent(TIDE_SENSOR_ID)}&duration=24`;
-
-      const res = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
-      if (!res.ok) throw new Error(`Tide API HTTP ${res.status}`);
-
-      const data = await res.json();
-      const features = Array.isArray(data?.features) ? data.features : [];
-
-      const points = features.map((feature) => {
-        const props = feature?.properties || {};
-
-        const timeRaw =
-          props.time ??
-          props.dateTime ??
-          props.datetime ??
-          props.timestamp ??
-          props.date ??
-          props.referenceTime ??
-          props.eventTime ??
-          props.dt ??
-          null;
-
-        const heightRaw =
-          props.value ??
-          props.measurement ??
-          props.level ??
-          props.tide ??
-          props.elevation ??
-          props.height ??
-          props.z ??
-          null;
-
-        if (!timeRaw || heightRaw == null) return null;
-
-        const time = parseApiDate(timeRaw);
-        const height = Number(heightRaw);
-
-        if (Number.isNaN(time.getTime()) || !Number.isFinite(height)) return null;
-
-        return { time, height };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.time - b.time);
-
-      const todaysPoints = points.filter(p => p.time >= dayStart && p.time <= dayEnd);
-      if (!todaysPoints.length) throw new Error("No tide points for today");
-      return todaysPoints;
-    }
-
-    function generateTodaySampleTide() {
       const points = [];
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      for (let i = 0; i <= 96; i += 1) {
-        const t = new Date(start.getTime() + i * 15 * 60 * 1000);
-        const h = 1.8 + 1.0 * Math.sin((i / 96) * Math.PI * 2);
-        points.push({ time: t, height: h });
+      const intervalMinutes = 15;
+      const totalPoints = (24 * 60) / intervalMinutes + 1;
+
+      const meanLevel = 2.36;
+      const mainAmplitude = 1.57;
+      const secondaryAmplitude = 0.14;
+      const cycleHours = 12.42;
+
+      for (let i = 0; i < totalPoints; i += 1) {
+        const time = new Date(dayStart.getTime() + i * intervalMinutes * 60000);
+        const hours = i * intervalMinutes / 60;
+        const height =
+          meanLevel +
+          mainAmplitude * Math.sin((2 * Math.PI * hours) / cycleHours - 1.05) +
+          secondaryAmplitude * Math.sin((4 * Math.PI * hours) / cycleHours + 0.42);
+
+        points.push({ time, height: Number(Math.max(0.15, height).toFixed(2)) });
       }
+
       return points;
     }
 
-    function findNearestIndex(points, target) {
-      const tt = target.getTime();
-      let bestIdx = 0;
-      let bestDiff = Infinity;
-      points.forEach((p, i) => {
-        const diff = Math.abs(p.time.getTime() - tt);
-        if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+    function findNearestPoint(points, targetTime) {
+      let best = points[0];
+      let bestDelta = Math.abs(points[0].time - targetTime);
+      points.forEach(point => {
+        const delta = Math.abs(point.time - targetTime);
+        if (delta < bestDelta) {
+          best = point;
+          bestDelta = delta;
+        }
       });
-      return bestIdx;
+      return best;
     }
 
-    function findNearestPoint(points, target) {
-      return points[findNearestIndex(points, target)];
+    function findNearestIndex(points, targetTime) {
+      let bestIndex = 0;
+      let bestDelta = Math.abs(points[0].time - targetTime);
+      points.forEach((point, i) => {
+        const delta = Math.abs(point.time - targetTime);
+        if (delta < bestDelta) {
+          bestIndex = i;
+          bestDelta = delta;
+        }
+      });
+      return bestIndex;
     }
 
     function findTurningPoints(points) {
       const turns = [];
       for (let i = 1; i < points.length - 1; i += 1) {
-        const prev = points[i - 1];
-        const curr = points[i];
-        const next = points[i + 1];
-        const isHigh = curr.height > prev.height && curr.height > next.height;
-        const isLow = curr.height < prev.height && curr.height < next.height;
+        const prev = points[i - 1].height;
+        const curr = points[i].height;
+        const next = points[i + 1].height;
+        const isHigh = curr > prev && curr >= next;
+        const isLow = curr < prev && curr <= next;
         if (isHigh) turns.push({ type: "High", ...points[i] });
         else if (isLow) turns.push({ type: "Low", ...points[i] });
       }
 
       const deduped = [];
-      for (const t of turns) {
+      for (const turn of turns) {
         const last = deduped[deduped.length - 1];
-        if (!last) deduped.push(t);
-        else if (Math.abs(last.time - t.time) > 45 * 60 * 1000) deduped.push(t);
+        if (!last) {
+          deduped.push(turn);
+          continue;
+        }
+        const minutesApart = Math.abs(turn.time - last.time) / 60000;
+        if (turn.type === last.type && minutesApart < 90) {
+          if (turn.type === "High" && turn.height > last.height) deduped[deduped.length - 1] = turn;
+          if (turn.type === "Low" && turn.height < last.height) deduped[deduped.length - 1] = turn;
+        } else {
+          deduped.push(turn);
+        }
       }
-      return deduped;
+      return deduped.slice(0, 4);
+    }
+
+    function buildTideAxes(minH, maxH) {
+      const yAxis = document.getElementById("tide-y-axis");
+      const xAxis = document.getElementById("tide-x-axis");
+      const yTicks = 5;
+      const yLabels = [];
+      for (let i = 0; i < yTicks; i += 1) {
+        const ratio = i / (yTicks - 1);
+        const value = maxH - ratio * (maxH - minH);
+        yLabels.push(`<div>${value.toFixed(1)}m</div>`);
+      }
+      yAxis.innerHTML = yLabels.join("");
+
+      const xLabels = [];
+      for (let i = 0; i < 7; i += 1) {
+        const hour = i * 4;
+        xLabels.push(`<div>${String(hour).padStart(2, "0")}:00</div>`);
+      }
+      xAxis.innerHTML = xLabels.join("");
     }
 
     function drawTideChart(points) {
       const svgWidth = 1000;
-      const plotTop = 36;
+      const plotTop = 42;
       const plotBottom = 350;
       const labelLayer = document.getElementById("tide-label-layer");
       const gridLayer = document.getElementById("tide-grid-layer");
@@ -1250,9 +1177,13 @@
 
       const startT = points[0].time.getTime();
       const endT = points[points.length - 1].time.getTime();
+      const tRange = endT - startT;
+      const hRange = maxH - minH;
 
-      const xOf = t => ((t - startT) / (endT - startT)) * svgWidth;
-      const yOf = h => plotTop + (1 - clamp((h - minH) / (maxH - minH), 0, 1)) * (plotBottom - plotTop);
+      const xOf = t => ((t - startT) / tRange) * svgWidth;
+      const yOf = h => plotBottom - ((h - minH) / hRange) * (plotBottom - plotTop);
+
+      buildTideAxes(minH, maxH);
 
       let gridMarkup = "";
       for (let i = 0; i < 5; i += 1) {
@@ -1283,7 +1214,16 @@
       document.getElementById("tide-now-dot").setAttribute("cy", nowY.toFixed(2));
       document.getElementById("tide-now-dot-glow").setAttribute("cx", nowX.toFixed(2));
       document.getElementById("tide-now-dot-glow").setAttribute("cy", nowY.toFixed(2));
-      labelLayer.innerHTML = "";
+
+      const labelWidth = 160;
+      const labelHeight = 56;
+      const labelX = clamp(nowX - labelWidth / 2, 8, svgWidth - labelWidth - 8);
+      const labelY = -6;
+      labelLayer.innerHTML = `
+        <rect x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" width="${labelWidth}" height="${labelHeight}" rx="15" fill="rgba(7,17,28,0.74)" stroke="rgba(255,255,255,0.10)"></rect>
+        <text x="${(labelX + labelWidth / 2).toFixed(2)}" y="${(labelY + 37).toFixed(2)}" fill="#f3f5fb" font-size="26" font-weight="500" text-anchor="middle">${current.height.toFixed(2)}m</text>
+      `;
+
       return { current, minHRaw, maxHRaw };
     }
 
@@ -1298,98 +1238,128 @@
       if (next.height < prev.height) state = "Ebbing";
 
       const range = maxHRaw - minHRaw;
+      const currentPct = range > 0 ? ((current.height - minHRaw) / range) * 100 : 0;
+      const pct = Math.round(clamp(currentPct, 0, 100));
 
-      document.getElementById("tide-now-height").textContent = `${current.height.toFixed(2)}m`;
+      document.getElementById("range-percent").textContent = `${pct}%`;
       document.getElementById("tide-state").textContent = state;
       document.getElementById("range-main").textContent = `${range.toFixed(2)}m`;
     }
 
     function populateNextTide(turns) {
-      const next = turns.find(t => t.time > new Date());
-      if (!next) return;
-      document.getElementById("next-tide-type").textContent = next.type;
-      document.getElementById("next-tide-time").textContent = formatTime(next.time);
+      const now = new Date();
+      const nextTurn = turns.find(turn => turn.time > now) || turns[0];
+      document.getElementById("next-tide-type").textContent = nextTurn ? nextTurn.type : "--";
+      document.getElementById("next-tide-time").textContent = nextTurn ? formatTime(nextTurn.time) : "--:--";
     }
 
     function populateTideEvents(turns) {
       const list = document.getElementById("tide-event-list");
-      if (!list) return;
-
-      const compact = isShortLandscape();
-      const compactTurns = compact ? turns.slice(0, 3) : turns;
-
-      // Store for resize re-render
-      window.__tideTurnsCache = turns;
-
-      list.innerHTML = compactTurns.map(turn => `
+      document.getElementById("tide-events-sub").textContent = `${turns.length} tides`;
+      list.innerHTML = turns.map(turn => `
         <div class="event-row">
           <div class="event-type">${turn.type}</div>
-          <div class="event-height">${turn.height.toFixed(2)}m</div>
           <div class="event-time">${formatTime(turn.time)}</div>
+          <div class="event-height">${turn.height.toFixed(2)}m</div>
         </div>
       `).join("");
     }
 
-    async function initTidePanel() {
-      try {
-        const points = await fetchTidePoints();
-        const turns = findTurningPoints(points);
-        const { current, minHRaw, maxHRaw } = drawTideChart(points);
-        populateTideMeta(points, current, minHRaw, maxHRaw);
-        populateNextTide(turns);
-        populateTideEvents(turns);
-        document.querySelector('.tide-panel .mode-chip').textContent = 'Live API';
-      } catch (err) {
-        console.error('Tide API load failed', err);
-        const points = generateTodaySampleTide();
-        const turns = findTurningPoints(points);
-        const { current, minHRaw, maxHRaw } = drawTideChart(points);
-        populateTideMeta(points, current, minHRaw, maxHRaw);
-        populateNextTide(turns);
-        populateTideEvents(turns);
-        document.querySelector('.tide-panel .mode-chip').textContent = 'Fallback';
-      }
-    }
-
     /* =========================================================
-       FORECAST PANEL
+       FORECAST PANEL DATA
+       3-hour segmentation logic from 1-hour source data:
+       - wind = 3-hour average
+       - gust = 3-hour maximum
+       - rain = 3-hour total
+       - temp = middle hour value
+       - weather code = middle hour value
        ========================================================= */
     let forecastData = [];
 
+    const weatherMap = {
+      0: { icon: "☀", label: "Clear" },
+      1: { icon: "🌤", label: "Mainly clear" },
+      2: { icon: "⛅", label: "Partly cloudy" },
+      3: { icon: "☁", label: "Cloudy" },
+      45: { icon: "🌫", label: "Fog" },
+      48: { icon: "🌫", label: "Fog" },
+      51: { icon: "🌦", label: "Light drizzle" },
+      53: { icon: "🌦", label: "Drizzle" },
+      55: { icon: "🌧", label: "Dense drizzle" },
+      61: { icon: "🌦", label: "Rain" },
+      63: { icon: "🌧", label: "Rain" },
+      65: { icon: "🌧", label: "Heavy rain" },
+      71: { icon: "🌨", label: "Snow" },
+      80: { icon: "🌦", label: "Rain shower" },
+      81: { icon: "🌧", label: "Rain shower" },
+      82: { icon: "⛈", label: "Heavy shower" },
+      95: { icon: "⛈", label: "Thunder" }
+    };
+
     function wx(code) {
-      const map = {
-        0: { icon: "☀️", label: "Clear" },
-        1: { icon: "🌤️", label: "Mainly clear" },
-        2: { icon: "⛅", label: "Partly cloudy" },
-        3: { icon: "☁️", label: "Overcast" },
-        45: { icon: "🌫️", label: "Fog" },
-        48: { icon: "🌫️", label: "Fog" },
-        51: { icon: "🌦️", label: "Drizzle" },
-        53: { icon: "🌦️", label: "Drizzle" },
-        55: { icon: "🌦️", label: "Drizzle" },
-        61: { icon: "🌧️", label: "Rain" },
-        63: { icon: "🌧️", label: "Rain" },
-        65: { icon: "🌧️", label: "Heavy rain" },
-        80: { icon: "🌧️", label: "Showers" },
-        81: { icon: "🌧️", label: "Showers" },
-        82: { icon: "🌧️", label: "Showers" },
-      };
-      return map[code] || { icon: "⛅", label: "Weather" };
+      return weatherMap[code] || { icon: "☁", label: "Forecast" };
+    }
+
+    function mean(values) {
+      return values.reduce((sum, value) => sum + value, 0) / (values.length || 1);
+    }
+
+    function sum(values) {
+      return values.reduce((sum, value) => sum + value, 0);
+    }
+
+    function parseApiDate(value) {
+      if (value instanceof Date) return value;
+      if (typeof value === "string" && /^\d{14}$/.test(value)) {
+        return new Date(`${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T${value.slice(8, 10)}:${value.slice(10, 12)}:${value.slice(12, 14)}`);
+      }
+      return new Date(value);
+    }
+
+    function toCompactDateTime(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const hh = String(date.getHours()).padStart(2, "0");
+      const mm = String(date.getMinutes()).padStart(2, "0");
+      const ss = String(date.getSeconds()).padStart(2, "0");
+      return `${y}${m}${d}${hh}${mm}${ss}`;
     }
 
     function fallbackForecastData() {
-      const out = [];
-      for (let h = 0; h < 24; h += 3) {
-        out.push({
-          time: `${String(h).padStart(2, "0")}:00`,
-          temp: 12,
-          wind: 9,
-          gust: 12,
-          rain: 0,
-          code: 2,
+      return [
+        { time: "00:00", temp: 7,  wind: 3.5, gust: 7.0,  rain: 0.0, code: 3 },
+        { time: "03:00", temp: 5,  wind: 3.7, gust: 8.0,  rain: 0.0, code: 3 },
+        { time: "06:00", temp: 5,  wind: 5.1, gust: 11.9, rain: 0.0, code: 3 },
+        { time: "09:00", temp: 10, wind: 5.9, gust: 11.9, rain: 0.0, code: 3 },
+        { time: "12:00", temp: 13, wind: 5.2, gust: 13.0, rain: 0.0, code: 0 },
+        { time: "15:00", temp: 12, wind: 4.9, gust: 11.3, rain: 0.0, code: 0 },
+        { time: "18:00", temp: 8,  wind: 3.3, gust: 7.4,  rain: 0.0, code: 0 },
+        { time: "21:00", temp: 5,  wind: 2.0, gust: 5.1,  rain: 0.0, code: 0 },
+        { time: "00:00", temp: 5,  wind: 2.0, gust: 5.1,  rain: 0.0, code: 0 }
+      ];
+    }
+
+    function segmentForecast(hourlyRows) {
+      const segments = [];
+      for (let i = 0; i < hourlyRows.length; i += 3) {
+        const chunk = hourlyRows.slice(i, i + 3);
+        if (!chunk.length) continue;
+        const mid = chunk[Math.floor(chunk.length / 2)];
+        segments.push({
+          time: chunk[0].time.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+          temp: Math.round(mid.temp),
+          wind: Number(mean(chunk.map(d => d.wind)).toFixed(1)),
+          gust: Number(Math.max(...chunk.map(d => d.gust)).toFixed(1)),
+          rain: Number(sum(chunk.map(d => d.rain)).toFixed(1)),
+          code: mid.code
         });
       }
-      return out;
+      if (segments.length) {
+        const last = { ...segments[segments.length - 1], time: "00:00" };
+        segments.push(last);
+      }
+      return segments;
     }
 
     async function loadForecastData() {
@@ -1397,71 +1367,51 @@
         const res = await fetch(FORECAST_URL, { cache: "no-store" });
         if (!res.ok) throw new Error(`Forecast API HTTP ${res.status}`);
         const data = await res.json();
-        const hours = data?.hourly || {};
-        const times = hours.time || [];
-        const temps = hours.temperature_2m || [];
-        const winds = hours.wind_speed_10m || [];
-        const gusts = hours.wind_gusts_10m || [];
-        const rains = hours.rain || [];
-        const codes = hours.weathercode || [];
+        if (data.error) throw new Error(data.reason || "Forecast API returned an error");
 
-        const rows = times.map((t, i) => ({
-          time: t.slice(11, 16),
-          temp: Math.round(temps[i]),
-          wind: Math.round(winds[i]),
-          gust: Math.round(gusts[i]),
-          rain: Number(rains[i].toFixed(1)),
-          code: codes[i],
-        }));
+        const hourly = data.hourly || {};
+        const requiredKeys = ["time", "temperature_2m", "rain", "wind_speed_10m", "wind_gusts_10m", "weather_code"];
+        const missing = requiredKeys.filter(key => safeArrayLength(hourly[key]) === 0);
+        if (missing.length) throw new Error(`Forecast response missing: ${missing.join(", ")}`);
 
-        // segment into 3h
-        const segments = [];
-        for (let i = 0; i < rows.length; i += 3) {
-          const chunk = rows.slice(i, i + 3);
-          if (!chunk.length) continue;
-          segments.push({
-            time: chunk[0].time,
-            temp: Math.round(chunk.reduce((a, b) => a + b.temp, 0) / chunk.length),
-            wind: Number(Math.max(...chunk.map(d => d.wind)).toFixed(1)),
-            gust: Number(Math.max(...chunk.map(d => d.gust)).toFixed(1)),
-            rain: Number(chunk.reduce((a, b) => a + b.rain, 0).toFixed(1)),
-            code: chunk[Math.floor(chunk.length / 2)].code,
-          });
-        }
-        if (segments.length) {
-          const last = { ...segments[segments.length - 1], time: "00:00" };
-          segments.push(last);
-        }
-        forecastData = (segments.length ? segments : rows.slice(0, 24));
+        const rowCount = hourly.time.length;
+        const rows = hourly.time.map((time, i) => ({
+          time: new Date(time),
+          temp: Number(hourly.temperature_2m[i] ?? 0),
+          wind: Number(hourly.wind_speed_10m[i] ?? 0),
+          gust: Number(hourly.wind_gusts_10m[i] ?? hourly.wind_speed_10m[i] ?? 0),
+          rain: Number(hourly.rain[i] ?? 0),
+          code: Number(hourly.weather_code[i] ?? 3)
+        })).filter(row => !Number.isNaN(row.time.getTime()));
+
+        if (!rows.length) throw new Error(`Forecast parsed 0 rows from ${rowCount} hourly timestamps`);
+
+        const start = new Date(rows[0].time);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(start);
+        end.setDate(end.getDate() + 1);
+        const todaysRows = rows.filter(row => row.time >= start && row.time < end).slice(0, 24);
+        const sourceRows = todaysRows.length ? todaysRows : rows.slice(0, 24);
+        forecastData = segmentForecast(sourceRows);
+
+        if (!forecastData.length) throw new Error("Forecast segmentation produced 0 segments");
+
         document.querySelector('.forecast-panel .mode-chip').textContent = 'Live API';
+        setStatusNote('forecast-status-note', 'Open-Meteo live data loaded');
+        console.log('Forecast live rows', sourceRows.length, 'segments', forecastData.length, data);
       } catch (err) {
         console.error('Forecast API load failed', err);
         forecastData = fallbackForecastData();
         document.querySelector('.forecast-panel .mode-chip').textContent = 'Fallback';
+        setStatusNote('forecast-status-note', `Forecast fallback: ${err.message}`);
       }
     }
 
     function getForecastWindScale() {
       const maxVal = Math.max(...forecastData.map(d => Math.max(d.wind, d.gust)));
-
-      // Finer top-steps on calmer days to avoid a "flat line" look.
-      if (maxVal <= 8) return 10;
-      if (maxVal <= 12) return 15;
-      if (maxVal <= 16) return 20;
-      if (maxVal <= 22) return 25;
-      if (maxVal <= 28) return 30;
-      if (maxVal <= 36) return 40;
+      if (maxVal <= 30) return 30;
+      if (maxVal <= 40) return 40;
       return 50;
-    }
-
-    function getWindTicks(windTop) {
-      if (windTop <= 10) return [10, 5, 0];
-      if (windTop === 15) return [15, 10, 5, 0];
-      if (windTop === 20) return [20, 10, 0];
-      if (windTop === 25) return [25, 15, 5, 0];
-      if (windTop === 30) return [30, 20, 10, 0];
-      if (windTop === 40) return [40, 30, 20, 10, 0];
-      return [50, 40, 30, 20, 10, 0];
     }
 
     function getNowFraction() {
@@ -1480,79 +1430,68 @@
 
       document.getElementById("forecast-time-grid").innerHTML = forecastData.map(d => `<div>${hourOnlyLabel(d.time)}</div>`).join("");
 
-      const windTicks = getWindTicks(windTop);
+      const windTicks = windTop === 30 ? [30, 20, 10, 0] : windTop === 40 ? [40, 30, 20, 10, 0] : [50, 40, 30, 20, 10, 0];
       document.getElementById("forecast-wind-axis").innerHTML = windTicks.map(v => `<div>${v}kn</div>`).join("");
 
       const maxRain = Math.max(...forecastData.map(d => d.rain));
       const rainTop = Math.max(1, Math.ceil(maxRain));
-      const rainTicks = [rainTop, Math.max(0.5, rainTop / 2), 0];
-      document.getElementById("forecast-rain-axis").innerHTML = rainTicks.map(v => `<div>${v.toFixed(v < 1 ? 1 : 0)}mm</div>`).join("");
-
+      document.getElementById("forecast-rain-axis").innerHTML = [rainTop, rainTop / 2, 0].map(v => `<div>${v.toFixed(v === 0 ? 0 : 1)}mm</div>`).join("");
       return rainTop;
+    }
+
+    function linePath(points) {
+      return points.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(2)},${p[1].toFixed(2)}`).join(" ");
     }
 
     function drawForecastWind(windTop) {
       const svg = document.getElementById("forecast-wind-svg");
       const W = 1000, H = 250;
-      const left = 8, right = 8, top = 26, bottom = 14;
+      const left = 8, right = 8, top = 28, bottom = 14;
       const plotH = H - top - bottom;
       const n = forecastData.length;
       const x = i => left + i * ((W - left - right) / (n - 1));
       const y = v => top + (1 - clamp(v / windTop, 0, 1)) * plotH;
 
-      const windTicks = getWindTicks(windTop);
-      const tickCount = Math.max(2, windTicks.length - 1);
-
       let grid = "";
+      const tickCount = windTop === 30 ? 3 : windTop === 40 ? 4 : 5;
       for (let i = 0; i <= tickCount; i += 1) {
         const yy = top + (i / tickCount) * plotH;
-        const isZero = i === tickCount;
-        grid += `<line x1="0" y1="${yy.toFixed(2)}" x2="1000" y2="${yy.toFixed(2)}" stroke="${isZero ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)'}" stroke-width="1"></line>`;
+        grid += `<line x1="0" y1="${yy.toFixed(2)}" x2="1000" y2="${yy.toFixed(2)}" stroke="${i === tickCount ? 'rgba(255,255,255,0.10)' : 'rgba(255,255,255,0.06)'}" stroke-width="1"></line>`;
       }
       for (let i = 0; i < n; i += 1) {
         const xx = x(i);
-        grid += `<line x1="${xx.toFixed(2)}" y1="${top}" x2="${xx.toFixed(2)}" y2="${(H - bottom).toFixed(2)}" stroke="rgba(255,255,255,0.035)" stroke-width="1"></line>`;
+        grid += `<line x1="${xx.toFixed(2)}" y1="0" x2="${xx.toFixed(2)}" y2="${H}" stroke="rgba(255,255,255,0.03)" stroke-width="1"></line>`;
       }
 
-      const linePath = pts => pts.map(([px, py], i) => `${i === 0 ? "M" : "L"}${px.toFixed(2)},${py.toFixed(2)}`).join(" ");
       const windPts = forecastData.map((d, i) => [x(i), y(d.wind)]);
-      const gustPts = forecastData.map((d, i) => [x(i), y(Math.max(d.gust, d.wind))]);
-
+      const gustPts = forecastData.map((d, i) => [x(i), y(d.gust)]);
       const fill = `${linePath(windPts)} L${x(n - 1).toFixed(2)},${(H - bottom).toFixed(2)} L${x(0).toFixed(2)},${(H - bottom).toFixed(2)} Z`;
       const nowX = left + getNowFraction() * (W - left - right);
 
       svg.innerHTML = `
         <defs>
           <linearGradient id="forecastWindFill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="rgba(228,238,255,0.20)"></stop>
+            <stop offset="0%" stop-color="rgba(228,238,255,0.18)"></stop>
             <stop offset="100%" stop-color="rgba(228,238,255,0.02)"></stop>
           </linearGradient>
         </defs>
         <g>${grid}</g>
         <line x1="${nowX.toFixed(2)}" y1="0" x2="${nowX.toFixed(2)}" y2="${H}" stroke="var(--accent-coral)" stroke-width="2.2" stroke-dasharray="6 6"></line>
         <path d="${fill}" fill="url(#forecastWindFill)"></path>
-
-        <!-- Gust halo then gust line -->
-        <path d="${linePath(gustPts)}" fill="none" stroke="rgba(0,0,0,0.38)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
-        <path d="${linePath(gustPts)}" fill="none" stroke="var(--accent-gust)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"></path>
-
-        <!-- Wind halo then wind line (primary) -->
-        <path d="${linePath(windPts)}" fill="none" stroke="rgba(0,0,0,0.42)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></path>
-        <path d="${linePath(windPts)}" fill="none" stroke="var(--accent-wind)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="${linePath(gustPts)}" fill="none" stroke="var(--accent-gust)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="${linePath(windPts)}" fill="none" stroke="var(--accent-wind)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
       `;
     }
 
     function drawForecastRain(rainTop) {
       const svg = document.getElementById("forecast-rain-svg");
       const W = 1000, H = 120;
-      const top = 10, bottom = 22;
+      const top = 10, bottom = 20;
       const plotH = H - top - bottom;
       const n = forecastData.length;
       const step = W / n;
-      const barW = step * 0.42;
+      const barW = step * 0.56;
       const y = v => top + (1 - clamp(v / rainTop, 0, 1)) * plotH;
-
-      const compact = isShortLandscape();
 
       let grid = "";
       [0, 0.5, 1].forEach((r, i) => {
@@ -1560,33 +1499,15 @@
         grid += `<line x1="0" y1="${yy.toFixed(2)}" x2="1000" y2="${yy.toFixed(2)}" stroke="${i === 2 ? 'rgba(120,174,255,0.22)' : 'rgba(255,255,255,0.035)'}" stroke-width="1"></line>`;
       });
 
-      const baseY = top + plotH;
-      let bars = "";
-      let labels = "";
-
       for (let i = 0; i < n; i += 1) {
-        const rainVal = Math.max(0, forecastData[i].rain);
-        if (rainVal <= 0) continue;
-
         const xx = i * step + step / 2;
+        const h = Math.max(0, plotH - (y(forecastData[i].rain) - top));
         const bx = xx - barW / 2;
-
-        const barTop = y(rainVal);
-        const rawH = baseY - barTop;
-        const hh = Math.max(2, rawH); // keep drizzle visible
-        const by = baseY - hh;
-
-        bars += `<rect x="${bx.toFixed(2)}" y="${by.toFixed(2)}" width="${barW.toFixed(2)}" height="${hh.toFixed(2)}" rx="7" fill="rgba(120,174,255,0.78)"></rect>`;
-
-        // Optional numeric labels for meaningful rain only (avoid clutter on small heights)
-        const threshold = compact ? 1.0 : 0.6;
-        if (rainVal >= threshold) {
-          const labelY = Math.max(top + 12, by - 6);
-          const txt = rainVal < 1 ? rainVal.toFixed(1) : rainVal.toFixed(0);
-          labels += `<text x="${xx.toFixed(2)}" y="${labelY.toFixed(2)}" fill="rgba(210,228,255,0.92)" font-size="12" font-weight="800" text-anchor="middle">${txt}</text>`;
-        }
+        const by = y(forecastData[i].rain);
+        grid += `<rect x="${bx.toFixed(2)}" y="${by.toFixed(2)}" width="${barW.toFixed(2)}" height="${h.toFixed(2)}" rx="8" fill="rgba(120,174,255,0.72)"></rect>`;
       }
 
+      const baseY = top + plotH;
       let axis = `<line x1="0" y1="${baseY.toFixed(2)}" x2="1000" y2="${baseY.toFixed(2)}" stroke="rgba(120,174,255,0.32)" stroke-width="1.4"></line>`;
       for (let i = 0; i < n; i += 1) {
         const xx = i * step + step / 2;
@@ -1594,16 +1515,83 @@
       }
 
       const nowX = getNowFraction() * W;
-      const hasRain = forecastData.some(d => d.rain > 0.01);
-
+      const hasRain = forecastData.some(d => d.rain > 0);
       svg.innerHTML = `
         ${grid}
-        ${bars}
-        ${labels}
         <line x1="${nowX.toFixed(2)}" y1="0" x2="${nowX.toFixed(2)}" y2="${H}" stroke="var(--accent-coral)" stroke-width="2.2" stroke-dasharray="6 6"></line>
         ${axis}
-        ${(!hasRain ? '<text x="500" y="78" fill="rgba(134,183,255,0.82)" font-size="14" font-weight="800" text-anchor="middle">No rain forecast</text>' : '')}
+        ${!hasRain ? '<text x="500" y="78" fill="rgba(134,183,255,0.72)" font-size="20" font-weight="700" text-anchor="middle">No rain forecast</text>' : ''}
       `;
+    }
+
+    /* =========================================================
+       PANEL INITIALISERS
+       ========================================================= */
+    async function fetchTidePoints() {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const ts = toCompactDateTime(start);
+      const urls = [
+        `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`,
+        `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`
+      ];
+
+      let lastError = null;
+
+      for (const url of urls) {
+        try {
+          const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (data.error) throw new Error(data.reason || 'API error');
+
+          const features = Array.isArray(data.features) ? data.features : [];
+          const rawPoints = features.map(feature => {
+            const props = feature.properties || {};
+            const coords = feature.geometry && Array.isArray(feature.geometry.coordinates) ? feature.geometry.coordinates : [];
+            const timeRaw = props.time || props.datetime || props.date || props.timestamp || props.obs_date || props.DateTime || props.referenceTime || props.dt;
+            const heightRaw = props.value ?? props.level ?? props.tide ?? props.elevation ?? props.measurement ?? props.z ?? coords[2];
+            const time = parseApiDate(timeRaw);
+            const height = Number(heightRaw);
+            return (timeRaw && Number.isFinite(height) && !Number.isNaN(time.getTime())) ? { time, height } : null;
+          }).filter(Boolean).sort((a, b) => a.time - b.time);
+
+          if (rawPoints.length) {
+            console.log('Tide live points', rawPoints.length, 'from', url, data);
+            return rawPoints;
+          }
+
+          throw new Error('No tide points parsed from response');
+        } catch (err) {
+          lastError = new Error(`${url} -> ${err.message}`);
+          console.error('Tide fetch attempt failed', lastError);
+        }
+      }
+
+      throw lastError || new Error('All tide API attempts failed');
+    }
+
+    async function initTidePanel() {
+      try {
+        const points = await fetchTidePoints();
+        const turns = findTurningPoints(points);
+        const { current, minHRaw, maxHRaw } = drawTideChart(points);
+        populateTideMeta(points, current, minHRaw, maxHRaw);
+        populateNextTide(turns);
+        populateTideEvents(turns);
+        document.querySelector('.tide-panel .mode-chip').textContent = 'Live API';
+        setStatusNote('tide-status-note', 'CCO live data loaded');
+      } catch (err) {
+        console.error('Tide API load failed', err);
+        const points = generateTodaySampleTide();
+        const turns = findTurningPoints(points);
+        const { current, minHRaw, maxHRaw } = drawTideChart(points);
+        populateTideMeta(points, current, minHRaw, maxHRaw);
+        populateNextTide(turns);
+        populateTideEvents(turns);
+        document.querySelector('.tide-panel .mode-chip').textContent = 'Fallback';
+        setStatusNote('tide-status-note', `Tide fallback: ${err.message}`);
+      }
     }
 
     async function initForecastPanel() {
@@ -1624,30 +1612,8 @@
 
     bootDashboard();
 
-    // Light debounce so orientation changes refresh compact views.
-    let __resizeTimer;
-    window.addEventListener("resize", () => {
-      window.clearTimeout(__resizeTimer);
-      __resizeTimer = window.setTimeout(() => {
-        if (window.__tideTurnsCache) populateTideEvents(window.__tideTurnsCache);
-        if (forecastData && forecastData.length) {
-          const windTop = getForecastWindScale();
-          const rainTop = buildForecastLabels(windTop);
-          drawForecastWind(windTop);
-          drawForecastRain(rainTop);
-        }
-      }, 150);
-    });
-
     setInterval(updateClock, 30000);
     setInterval(refreshAstronomy, 60 * 60 * 1000);
-    setInterval(initTidePanel, 15 * 60 * 1000);
-  </script>
-
-  <!-- SunCalc inline minimal for sunrise/sunset -->
-  <script>
-    // Minimal SunCalc subset (kept from original file)
-    // ...
   </script>
 </body>
 </html>
