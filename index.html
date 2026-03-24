@@ -3,16 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Marine Dashboard Final Full Test v2</title>
+  <title>Marine Dashboard - API Integrated</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    /* =========================================================
-       GLOBAL RESET + SHARED DESIGN TOKENS
-       ========================================================= */
     * { box-sizing: border-box; }
 
     :root {
@@ -22,12 +19,10 @@
       --panel-border: 1px solid rgba(255,255,255,0.06);
       --panel-shadow: 0 12px 34px rgba(0,0,0,0.34);
 
-      --bg-main: #111528;
       --bg-panel: linear-gradient(180deg, rgba(39,43,74,0.98) 0%, rgba(31,36,64,0.98) 100%);
       --bg-panel-strong: linear-gradient(180deg, rgba(35,40,72,0.98) 0%, rgba(26,31,58,0.98) 100%);
       --bg-panel-soft: linear-gradient(180deg, rgba(46,51,86,0.98) 0%, rgba(34,39,69,0.98) 100%);
       --bg-chart: linear-gradient(180deg, rgba(32,37,67,0.98) 0%, rgba(23,28,51,0.98) 100%);
-      --bg-chip: rgba(87,113,255,0.18);
 
       --text-main: #f3f5fb;
       --text-soft: #b7bdd0;
@@ -62,9 +57,6 @@
         linear-gradient(180deg, #161a31 0%, #111528 100%);
     }
 
-    /* =========================================================
-       WHOLE DASHBOARD LAYOUT
-       ========================================================= */
     .dashboard {
       width: 100vw;
       height: 100vh;
@@ -85,27 +77,8 @@
       box-shadow: var(--panel-shadow);
     }
 
-    .mode-chip {
-      position: absolute;
-      top: 8px;
-      right: 10px;
-      z-index: 6;
-      padding: 5px 9px;
-      border-radius: 999px;
-      background: var(--bg-chip);
-      border: 1px solid rgba(255,255,255,0.10);
-      color: #dfe7fb;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-    }
+    .panel-label { display: none; }
 
-    /* =========================================================
-       TOP ROW
-       1. Info panel
-       2. Live wind widget panel
-       3. Webcam panel
-       ========================================================= */
     .top-row {
       display: grid;
       grid-template-columns: minmax(120px, 1fr) var(--wind-width) var(--webcam-width);
@@ -115,206 +88,43 @@
       align-items: stretch;
     }
 
-    /* INFO PANEL */
-    .info-panel {
+    .top-placeholder {
       background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-      padding: 14px 10px 12px;
-      display: grid;
-      grid-template-rows: 0.9fr 1fr 1.25fr;
-      gap: 10px;
-      align-items: stretch;
-      min-width: 0;
-    }
-
-    .info-time-block {
       display: grid;
       place-items: center;
-      min-height: 0;
-      padding: 0;
+      padding: 18px;
     }
 
-    .info-time {
-      font-size: clamp(34px, 3vw, 40px);
-      font-weight: 500;
-      line-height: 0.95;
-      letter-spacing: 0.055em;
-      color: var(--text-main);
-      text-align: center;
-      width: 100%;
-    }
-
-    .info-sun-card {
-      border-radius: 18px;
-      background: var(--bg-panel-soft);
-      border: 1px solid rgba(255,255,255,0.05);
-      padding: 12px 10px;
-      display: grid;
-      align-content: center;
-      gap: 10px;
-      min-width: 0;
-    }
-
-    .sun-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      align-items: baseline;
-    }
-
-    .sun-label {
-      font-size: 14px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-weight: 700;
-      min-width: 0;
-    }
-
-    .sun-value {
-      font-size: 18px;
-      font-weight: 500;
-      letter-spacing: 0.03em;
-      color: var(--text-main);
-      line-height: 1;
-      white-space: nowrap;
-    }
-
-    .moon-card {
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(35,40,72,0.98) 0%, rgba(27,32,58,0.98) 100%);
-      border: 1px solid rgba(255,255,255,0.05);
-      padding: 10px;
-      display: grid;
-      grid-template-rows: auto auto auto;
-      justify-items: center;
-      align-content: center;
-      text-align: center;
-      gap: 0;
-      min-height: 0;
-      min-width: 0;
-    }
-
-    .moon-svg {
-      width: 95px;
-      height: 95px;
-      display: block;
-      filter: drop-shadow(0 0 10px rgba(255,255,255,0.18));
-    }
-
-    .moon-name,
-    .moon-illumination {
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: 0.04em;
-      color: var(--text-main);
-      line-height: 1.15;
-    }
-
-    .moon-illumination {
-      color: #d8ddeb;
-      line-height: 1;
-    }
-
-    .moon-illumination::before {
-      content: "▲ ";
-      font-size: 8px;
-      position: relative;
-      top: -1px;
-    }
-
-    /* LIVE WIND PANEL */
-    .wind-panel {
-  padding: 14px 14px 10px;
-  background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 4px;
-  min-height: 0;
-}
-
-    .wind-shell {
-      position: relative;
-      min-height: 0;
-      overflow: hidden;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.05);
-      background: linear-gradient(180deg, rgba(32,37,67,0.98) 0%, rgba(23,28,51,0.98) 100%);
-    }
-
-    .wind-frame {
-      position: absolute;
-      left: 34%;
-      top: 26%;
-      width: 138.2%;
-      height: 138.2%;
-      border: 0;
-      display: block;
-      background: linear-gradient(180deg, rgba(34,40,74,0.98) 0%, rgba(24,29,55,0.98) 100%);
-      transform: translate(-38%, -38%) scale(1.1);
-      transform-origin: center center;
-      pointer-events: none;
-    }
-
-    .wind-title {
-      padding: 4px 2px 4px;
-    }
-
-    /* WEBCAM PANEL */
-    .webcam-panel {
-      background: #101422;
-      aspect-ratio: 16 / 9;
-    }
-
-    .webcam-media {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      background: #101422;
-    }
-
-    #solent-cam {
+    .top-placeholder-inner {
       width: 100%;
       height: 100%;
-      display: block;
-      object-fit: cover;
-      object-position: center center;
-      background: #101422;
-    }
-
-    .webcam-fallback {
-      position: absolute;
-      inset: 0;
-      display: none;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.04);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%),
+        radial-gradient(circle at top right, rgba(47,156,255,0.09), transparent 40%);
+      display: grid;
       place-items: center;
       text-align: center;
-      padding: 24px;
-      background:
-        linear-gradient(180deg, rgba(16,20,34,0.95) 0%, rgba(13,18,30,0.98) 100%),
-        radial-gradient(circle at top right, rgba(47,156,255,0.10), transparent 40%);
       color: var(--text-soft);
-      z-index: 2;
+      padding: 24px;
     }
 
-    .webcam-fallback.show { display: grid; }
-
-    .webcam-fallback-title {
+    .placeholder-title {
       font-size: 18px;
-      font-weight: 700;
+      font-weight: 500;
       color: #dce2f0;
       margin-bottom: 8px;
     }
 
-    .webcam-fallback-sub {
-      font-size: 13px;
-      line-height: 1.45;
+    .placeholder-sub {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       color: var(--text-muted);
     }
 
-    /* =========================================================
-       BOTTOM ROW
-       1. Tide panel
-       2. Forecast panel
-       ========================================================= */
     .bottom-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -326,6 +136,22 @@
       padding: 14px;
       background: var(--bg-panel-strong);
       min-height: 0;
+    }
+
+    .mode-chip {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      z-index: 6;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(87,113,255,0.18);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: #dfe7fb;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
 
     .graph-title {
@@ -426,7 +252,6 @@
       color: var(--text-muted);
     }
 
-    /* TIDE PANEL */
     .tide-panel {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 146px;
@@ -437,7 +262,7 @@
       min-width: 0;
       min-height: 0;
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-rows: auto 1fr auto auto;
       gap: 10px;
       padding-top: 4px;
     }
@@ -468,28 +293,15 @@
       padding-bottom: 4px;
     }
 
-    .tide-y-axis div,
-    .forecast-wind-axis div,
-    .forecast-rain-axis div {
+    .tide-y-axis div {
       display: flex;
       align-items: center;
+      justify-content: flex-end;
       transform: translateY(-50%);
     }
 
-    .tide-y-axis div { justify-content: flex-end; }
-
-    .svg-wrap {
-      min-width: 0;
-      min-height: 0;
-      position: relative;
-    }
-
-    .tide-svg,
-    .forecast-svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
+    .svg-wrap { min-width: 0; min-height: 0; position: relative; }
+    .tide-svg, .forecast-svg { width: 100%; height: 100%; display: block; }
 
     .x-axis {
       grid-column: 2;
@@ -509,6 +321,13 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
       min-height: 0;
+    }
+
+    .source-attrib {
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 0 2px;
+      line-height: 1.35;
     }
 
     .tide-side {
@@ -531,7 +350,9 @@
       border: 1px solid rgba(255,255,255,0.05);
       padding: 8px 10px 7px;
       display: grid;
+      grid-template-columns: 1fr;
       gap: 2px;
+      align-items: start;
     }
 
     .event-type {
@@ -556,82 +377,66 @@
       line-height: 1.1;
     }
 
-    /* FORECAST PANEL
-       Notes:
-       - top padding slightly increased so title baseline matches tide title
-       - weather band lifted slightly so icons / temps are less cramped
-       - wind plot given more vertical space than rain plot
-       - bottom time axis has its own protected row
-    */
     .forecast-panel {
       min-width: 0;
       min-height: 0;
       display: grid;
-      grid-template-rows: auto 1fr;
+      grid-template-rows: auto 1fr auto;
       gap: 10px;
-      padding-top: 12px;
+      padding-top: 4px;
     }
 
     .forecast-chart-wrap {
       position: absolute;
       inset: 0;
-      padding: 18px 12px 12px 10px;
+      padding: 10px 12px 10px 10px;
       display: grid;
-      grid-template-columns: 66px 1fr 64px;
-      grid-template-rows: 78px minmax(0, 2.35fr) 76px 38px;
+      grid-template-columns: 56px 1fr 54px;
+      grid-template-rows: 62px minmax(0, 1.55fr) 62px 28px;
       gap: 0 8px;
     }
 
-    .forecast-weather-band {
-      grid-column: 2;
-      grid-row: 1;
-      display: grid;
-      align-items: end;
-      padding-bottom: 14px;
-    }
-
-    .forecast-weather-grid,
-    .forecast-time-grid {
-      display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      gap: 0;
-    }
+    .forecast-weather-band { grid-column: 2; grid-row: 1; display: grid; align-items: end; padding-top: 2px; }
+    .forecast-weather-grid, .forecast-time-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 0; }
 
     .forecast-weather-slot {
       text-align: center;
       display: grid;
       justify-items: center;
       align-content: center;
-      gap: 8px;
-      transform: translateY(-8px);
+      gap: 4px;
     }
 
     .forecast-weather-icon {
-      font-size: 28px;
+      font-size: 18px;
       line-height: 1;
       filter: drop-shadow(0 1px 0 rgba(0,0,0,0.35));
-      transform: translateY(-1px);
     }
 
     .forecast-weather-temp {
-      font-size: 15px;
+      font-size: 11px;
       font-weight: 700;
       color: #ffd9a6;
       line-height: 1;
-      transform: translateY(-1px);
     }
 
     .forecast-wind-axis {
       grid-column: 1;
       grid-row: 2;
       display: grid;
-      grid-template-rows: repeat(4, 1fr);
       text-align: right;
-      padding-top: 16px;
-      padding-bottom: 8px;
+      padding-top: 8px;
+      padding-bottom: 6px;
       color: #9eb4ff;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
+    }
+
+    .forecast-wind-axis div,
+    .forecast-rain-axis div {
+      display: flex;
+      align-items: center;
+      transform: translateY(-50%);
     }
 
     .forecast-wind-axis div { justify-content: flex-end; }
@@ -642,9 +447,9 @@
       display: grid;
       grid-template-rows: repeat(3, 1fr);
       color: #86b7ff;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
-      padding-top: 10px;
+      padding-top: 4px;
       padding-bottom: 6px;
     }
 
@@ -653,169 +458,81 @@
       padding-left: 4px;
     }
 
-    .forecast-wind-svg-wrap {
-      grid-column: 2;
-      grid-row: 2;
-      position: relative;
-      min-height: 0;
-    }
-
-    .forecast-rain-svg-wrap {
-      grid-column: 2;
-      grid-row: 3;
-      position: relative;
-      min-height: 0;
-    }
-
+    .forecast-wind-svg-wrap { grid-column: 2; grid-row: 2; position: relative; min-height: 0; }
+    .forecast-rain-svg-wrap { grid-column: 2; grid-row: 3; position: relative; min-height: 0; }
     .forecast-time-band {
       grid-column: 2;
       grid-row: 4;
       display: grid;
-      align-items: end;
-      padding-top: 4px;
+      align-items: center;
+      padding-top: 2px;
     }
 
     .forecast-time-grid {
       color: var(--text-muted);
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 700;
       text-align: center;
       letter-spacing: 0.02em;
       line-height: 1;
     }
 
-
-    .status-note {
-      position: absolute;
-      left: 14px;
-      bottom: 10px;
-      z-index: 7;
-      max-width: calc(100% - 28px);
-      padding: 6px 10px;
-      border-radius: 12px;
-      background: rgba(7,17,28,0.68);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: var(--text-soft);
-      font-size: 10px;
-      font-weight: 600;
-      line-height: 1.25;
-      display: none;
-      pointer-events: none;
+    .forecast-meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
     }
 
-    .status-note.show {
-      display: block;
-    }
-
-    /* RESPONSIVE */
     @media (max-width: 1100px) {
       html, body { overflow: auto; }
-
-      .dashboard {
-        height: auto;
-        min-height: 100vh;
-        grid-template-rows: auto auto;
-      }
-
-      .top-row,
-      .bottom-row {
-        grid-template-columns: 1fr;
-      }
-
-      .info-panel,
-      .wind-panel,
-      .webcam-panel,
-      .panel-shell {
-        min-height: 320px;
-      }
-
+      .dashboard { height: auto; min-height: 100vh; grid-template-rows: auto auto; }
+      .top-row, .bottom-row { grid-template-columns: 1fr; }
+      .top-placeholder, .panel-shell { min-height: 320px; }
       .tide-panel { grid-template-columns: 1fr; }
       .tide-side { padding-top: 0; }
       .chart-card { min-height: 340px; }
-      .bottom-meta { grid-template-columns: 1fr; }
+      .bottom-meta, .forecast-meta { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="dashboard">
-    <!-- ======================================================
-         TOP ROW
-         ====================================================== -->
     <div class="top-row">
-      <!-- 1) INFO / CLOCK / SUN / MOON PANEL -->
-      <div class="panel info-panel">
-        <div class="info-time-block">
-          <div class="info-time" id="info-time">--:--</div>
-        </div>
-
-        <div class="info-sun-card">
-          <div class="sun-row">
-            <span class="sun-label">Sunrise</span>
-            <span class="sun-value" id="sunrise-time">--:--</span>
+      <div class="panel top-placeholder">
+        <div class="panel-label">Info</div>
+        <div class="top-placeholder-inner">
+          <div>
+            <div class="placeholder-title">Top row placeholder</div>
+            <div class="placeholder-sub">info frame</div>
           </div>
-          <div class="sun-row">
-            <span class="sun-label">Sunset</span>
-            <span class="sun-value" id="sunset-time">--:--</span>
-          </div>
-        </div>
-
-        <div class="moon-card">
-          <svg id="moon-icon" viewBox="0 0 100 100" class="moon-svg" aria-label="Moon phase">
-            <defs>
-              <radialGradient id="moonGlow" cx="50%" cy="40%" r="60%">
-                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"></stop>
-                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
-              </radialGradient>
-            </defs>
-            <circle cx="50" cy="50" r="38" fill="url(#moonGlow)"></circle>
-            <circle cx="50" cy="50" r="30" fill="#111528" stroke="rgba(255,255,255,0.16)"></circle>
-            <path id="moon-shape" d="" fill="#f6f7fb"></path>
-          </svg>
-          <div class="moon-name" id="moon-name">Waxing Gibbous</div>
-          <div class="moon-illumination" id="moon-illumination">76%</div>
         </div>
       </div>
 
-      <!-- 2) LIVE WIND WIDGET PANEL -->
-      <div class="panel wind-panel">
-        <div class="graph-title wind-title">
-          <div class="graph-title-main">Lymington Starting Platform</div>
-        </div>
-        <div class="wind-shell">
-          <iframe
-            id="wind-iframe"
-            class="wind-frame"
-            src="https://weatherfile.com/widgets/wind-dial/wind-dial.php?locationID=GBR00001&wsunits=kts&locationname=true"
-            title="Live wind"
-            scrolling="no">
-          </iframe>
+      <div class="panel top-placeholder">
+        <div class="panel-label">Wind</div>
+        <div class="top-placeholder-inner">
+          <div>
+            <div class="placeholder-title">Top row placeholder</div>
+            <div class="placeholder-sub">wind frame</div>
+          </div>
         </div>
       </div>
 
-      <!-- 3) WEBCAM PANEL -->
-      <div class="panel webcam-panel">
-        <div class="webcam-media">
-          <video id="solent-cam" autoplay muted playsinline></video>
-          <div id="webcam-fallback" class="webcam-fallback">
-            <div class="webcam-fallback-inner">
-              <div class="webcam-fallback-title">Webcam unavailable</div>
-              <div class="webcam-fallback-sub">
-                The live stream could not be loaded in this browser or is temporarily unavailable.
-              </div>
-            </div>
+      <div class="panel top-placeholder">
+        <div class="panel-label">Webcam</div>
+        <div class="top-placeholder-inner">
+          <div>
+            <div class="placeholder-title">Top row placeholder</div>
+            <div class="placeholder-sub">webcam frame</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ======================================================
-         COMPLETE BOTTOM ROW
-         ====================================================== -->
     <div class="bottom-row">
-      <!-- 4) TIDE PANEL -->
       <div class="panel panel-shell tide-panel">
-        <div class="mode-chip">Live API</div>
-        <div class="status-note" id="tide-status-note"></div>
+        <div class="panel-label">Tide</div>
+        <div class="mode-chip" id="tide-mode-chip">Loading tide API</div>
 
         <div class="tide-main">
           <div class="graph-title">
@@ -825,7 +542,6 @@
           <div class="chart-card">
             <div class="chart-wrap">
               <div class="y-axis tide-y-axis" id="tide-y-axis"></div>
-
               <div class="svg-wrap">
                 <svg class="tide-svg" id="tide-svg" viewBox="0 0 1000 420" preserveAspectRatio="none" aria-label="Today tide graph">
                   <defs>
@@ -843,7 +559,6 @@
                   <g id="tide-label-layer"></g>
                 </svg>
               </div>
-
               <div class="x-axis" id="tide-x-axis"></div>
             </div>
           </div>
@@ -869,6 +584,8 @@
               <div class="mini-main" id="range-main">--.-m</div>
             </div>
           </div>
+
+          <div class="source-attrib" id="tide-attribution"></div>
         </div>
 
         <div class="tide-side">
@@ -882,10 +599,9 @@
         </div>
       </div>
 
-      <!-- 5) FORECAST PANEL -->
       <div class="panel panel-shell forecast-panel">
-        <div class="mode-chip">Live API</div>
-        <div class="status-note" id="forecast-status-note"></div>
+        <div class="panel-label">Forecast</div>
+        <div class="mode-chip" id="forecast-mode-chip">Loading forecast API</div>
 
         <div class="graph-title">
           <div class="graph-title-main">Forecast</div>
@@ -893,45 +609,53 @@
 
         <div class="chart-card">
           <div class="forecast-chart-wrap">
-            <!-- 5a) weather code icons + temperatures -->
             <div class="forecast-weather-band">
               <div class="forecast-weather-grid" id="forecast-weather-grid"></div>
             </div>
-
-            <!-- 5b) wind axis, wind line and gust line -->
             <div class="forecast-wind-axis" id="forecast-wind-axis"></div>
             <div class="forecast-wind-svg-wrap">
               <svg class="forecast-svg" id="forecast-wind-svg" viewBox="0 0 1000 250" preserveAspectRatio="none" aria-label="Wind and gust graph"></svg>
             </div>
-
-            <!-- 5c) rain bars and rain axis -->
             <div class="forecast-rain-svg-wrap">
               <svg class="forecast-svg" id="forecast-rain-svg" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-label="Rain graph"></svg>
             </div>
             <div class="forecast-rain-axis" id="forecast-rain-axis"></div>
-
-            <!-- 5d) bottom time axis -->
             <div class="forecast-time-band">
               <div class="forecast-time-grid" id="forecast-time-grid"></div>
             </div>
+          </div>
+        </div>
+
+        <div class="forecast-meta">
+          <div class="mini-card">
+            <div class="mini-label">Wind Now</div>
+            <div class="mini-main inline"><span id="forecast-wind-now">--.-kn</span><span class="mini-side" id="forecast-gust-now">gust --.-kn</span></div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Peak Wind</div>
+            <div class="mini-main inline"><span id="forecast-peak-wind">--.-kn</span><span class="mini-side" id="forecast-peak-time">--</span></div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Rain Total</div>
+            <div class="mini-main" id="forecast-rain-total">--.-mm</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-label">Temp Range</div>
+            <div class="mini-main" id="forecast-temp-range">--° / --°</div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
-    /* =========================================================
-       SHARED HELPERS
-       ========================================================= */
-    const WEBCAM_STREAM = "https://camsecure.uk/HLS/royalsolent.m3u8";
-    const LYMINGTON = { lat: 50.7592, lon: -1.5383 };
-    const FORECAST_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,precipitation_probability,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&models=ukmo_uk_deterministic_2km&timezone=Europe%2FLondon&forecast_days=1&wind_speed_unit=kn";
-    const TIDE_API_KEY = "b8a696396eec2787361f6a4e67951fd8";
-    const TIDE_SENSOR_ID = "Lymington";
-
-    console.log("DASHBOARD BUILD v4");
+    const CONFIG = {
+      forecastUrl: "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,precipitation_probability,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&models=ukmo_uk_deterministic_2km,ukmo_seamless&timezone=auto&forecast_days=1&wind_speed_unit=kn",
+      tideApiKey: "b8a696396eec2787361f6a4e67951fd8",
+      tideSensor: "Lymington",
+      tideDurationHours: 24,
+      tideEndpointBase: "https://coastalmonitoring.org/observations/tidepredictions/latest.geojson"
+    };
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
@@ -944,131 +668,53 @@
       });
     }
 
-    function formatTimeLocal(value) {
-      const d = new Date(value);
-      return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-    }
-
     function hourOnlyLabel(value) {
       const parts = String(value).split(":");
       return (parts[0] || "00").padStart(2, "0");
     }
 
-    function setStatusNote(id, message) {
+    function parseApiDate(value) {
+      if (value instanceof Date) return value;
+      if (typeof value === "string") {
+        if (/^\d{8}#\d{6}$/.test(value)) {
+          return new Date(`${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T${value.slice(9, 11)}:${value.slice(11, 13)}:${value.slice(13, 15)}`);
+        }
+        if (/^\d{14}$/.test(value)) {
+          return new Date(`${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T${value.slice(8, 10)}:${value.slice(10, 12)}:${value.slice(12, 14)}`);
+        }
+      }
+      return new Date(value);
+    }
+
+    function setChip(id, text, ok = true) {
       const el = document.getElementById(id);
-      if (!el) return;
-      if (!message) {
-        el.textContent = "";
-        el.classList.remove("show");
-        return;
-      }
-      el.textContent = message;
-      el.classList.add("show");
+      el.textContent = text;
+      el.style.background = ok ? "rgba(87,113,255,0.18)" : "rgba(255,142,122,0.18)";
     }
 
-    function safeArrayLength(value) {
-      return Array.isArray(value) ? value.length : 0;
+    function setTideAttribution(text) {
+      document.getElementById("tide-attribution").textContent = text;
     }
 
-    /* =========================================================
-       TOP ROW LOGIC
-       ========================================================= */
-    function updateClock() {
-      const now = new Date();
-      document.getElementById("info-time").textContent = now.toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+    function startOfTodayLocal() {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
     }
 
-    function moonInfoForDate(date = new Date()) {
-      const synodicMonth = 29.53058867;
-      const knownNewMoon = new Date("2000-01-06T18:14:00Z");
-      const days = (date - knownNewMoon) / 86400000;
-      const phase = ((days % synodicMonth) + synodicMonth) % synodicMonth;
-      const fraction = phase / synodicMonth;
-      const illumination = Math.round((1 - Math.cos(2 * Math.PI * fraction)) * 50);
-
-      let name = "New Moon";
-      if (fraction < 0.03 || fraction > 0.97) name = "New Moon";
-      else if (fraction < 0.22) name = "Waxing Crescent";
-      else if (fraction < 0.28) name = "First Quarter";
-      else if (fraction < 0.47) name = "Waxing Gibbous";
-      else if (fraction < 0.53) name = "Full Moon";
-      else if (fraction < 0.72) name = "Waning Gibbous";
-      else if (fraction < 0.78) name = "Last Quarter";
-      else name = "Waning Crescent";
-
-      return { fraction, illumination, name };
+    function endOfTodayLocal() {
+      const d = startOfTodayLocal();
+      d.setHours(23, 59, 59, 999);
+      return d;
     }
 
-    function drawMoon(fraction) {
-      const r = 30, cx = 50, cy = 50;
-      const waxing = fraction <= 0.5;
-      const phaseAngle = Math.cos(2 * Math.PI * fraction);
-      const rx = Math.abs(phaseAngle) * r;
-      const d = waxing
-        ? `M ${cx} ${cy-r} A ${r} ${r} 0 1 1 ${cx} ${cy+r} A ${rx} ${r} 0 1 0 ${cx} ${cy-r} Z`
-        : `M ${cx} ${cy-r} A ${rx} ${r} 0 1 1 ${cx} ${cy+r} A ${r} ${r} 0 1 0 ${cx} ${cy-r} Z`;
-      document.getElementById("moon-shape").setAttribute("d", d);
-    }
-
-    async function refreshAstronomy() {
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${LYMINGTON.lat}&longitude=${LYMINGTON.lon}&daily=sunrise,sunset&timezone=Europe%2FLondon`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Astronomy API HTTP ${res.status}`);
-        const data = await res.json();
-        document.getElementById("sunrise-time").textContent = formatTimeLocal(data.daily.sunrise[0]);
-        document.getElementById("sunset-time").textContent = formatTimeLocal(data.daily.sunset[0]);
-      } catch (err) {
-        console.error("Astronomy refresh failed", err);
-      }
-
-      const moon = moonInfoForDate(new Date());
-      document.getElementById("moon-name").textContent = moon.name;
-      document.getElementById("moon-illumination").textContent = `${moon.illumination}%`;
-      drawMoon(moon.fraction);
-    }
-
-    function showWebcamFallback() {
-      document.getElementById("webcam-fallback").classList.add("show");
-    }
-
-    function initWebcam() {
-      const video = document.getElementById("solent-cam");
-
-      if (window.Hls && Hls.isSupported()) {
-        const hls = new Hls({ maxBufferLength: 30, liveSyncDurationCount: 3 });
-        hls.loadSource(WEBCAM_STREAM);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          console.error("HLS error:", data);
-          if (data && data.fatal) showWebcamFallback();
-        });
-        video.addEventListener("error", showWebcamFallback);
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = WEBCAM_STREAM;
-        video.addEventListener("loadedmetadata", () => video.play().catch(() => {}));
-        video.addEventListener("error", showWebcamFallback);
-      } else {
-        showWebcamFallback();
-      }
-    }
-
-    /* =========================================================
-       TIDE PANEL DATA + LOGIC
-       ========================================================= */
     function generateTodaySampleTide() {
       const now = new Date();
       const dayStart = new Date(now);
       dayStart.setHours(0, 0, 0, 0);
-
       const points = [];
       const intervalMinutes = 15;
       const totalPoints = (24 * 60) / intervalMinutes + 1;
-
       const meanLevel = 2.36;
       const mainAmplitude = 1.57;
       const secondaryAmplitude = 0.14;
@@ -1077,14 +723,9 @@
       for (let i = 0; i < totalPoints; i += 1) {
         const time = new Date(dayStart.getTime() + i * intervalMinutes * 60000);
         const hours = i * intervalMinutes / 60;
-        const height =
-          meanLevel +
-          mainAmplitude * Math.sin((2 * Math.PI * hours) / cycleHours - 1.05) +
-          secondaryAmplitude * Math.sin((4 * Math.PI * hours) / cycleHours + 0.42);
-
+        const height = meanLevel + mainAmplitude * Math.sin((2 * Math.PI * hours) / cycleHours - 1.05) + secondaryAmplitude * Math.sin((4 * Math.PI * hours) / cycleHours + 0.42);
         points.push({ time, height: Number(Math.max(0.15, height).toFixed(2)) });
       }
-
       return points;
     }
 
@@ -1141,12 +782,13 @@
           deduped.push(turn);
         }
       }
-      return deduped.slice(0, 4);
+      return deduped;
     }
 
     function buildTideAxes(minH, maxH) {
       const yAxis = document.getElementById("tide-y-axis");
       const xAxis = document.getElementById("tide-x-axis");
+
       const yTicks = 5;
       const yLabels = [];
       for (let i = 0; i < yTicks; i += 1) {
@@ -1166,7 +808,7 @@
 
     function drawTideChart(points) {
       const svgWidth = 1000;
-      const plotTop = 42;
+      const plotTop = 36;
       const plotBottom = 350;
       const labelLayer = document.getElementById("tide-label-layer");
       const gridLayer = document.getElementById("tide-grid-layer");
@@ -1179,8 +821,8 @@
 
       const startT = points[0].time.getTime();
       const endT = points[points.length - 1].time.getTime();
-      const tRange = endT - startT;
-      const hRange = maxH - minH;
+      const tRange = Math.max(1, endT - startT);
+      const hRange = Math.max(0.1, maxH - minH);
 
       const xOf = t => ((t - startT) / tRange) * svgWidth;
       const yOf = h => plotBottom - ((h - minH) / hRange) * (plotBottom - plotTop);
@@ -1200,9 +842,8 @@
       gridLayer.innerHTML = gridMarkup;
 
       const coords = points.map(p => [xOf(p.time.getTime()), yOf(p.height)]);
-      let lineD = "";
-      coords.forEach(([x, y], i) => { lineD += `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)} `; });
-      const fillD = `${lineD}L${coords[coords.length - 1][0].toFixed(2)},${plotBottom} L0,${plotBottom} Z`;
+      const lineD = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
+      const fillD = `${lineD} L${coords[coords.length - 1][0].toFixed(2)},${plotBottom} L0,${plotBottom} Z`;
       document.getElementById("tide-line-path").setAttribute("d", lineD.trim());
       document.getElementById("tide-fill-path").setAttribute("d", fillD.trim());
 
@@ -1210,6 +851,7 @@
       const current = findNearestPoint(points, now);
       const nowX = xOf(current.time.getTime());
       const nowY = yOf(current.height);
+
       document.getElementById("tide-now-line").setAttribute("x1", nowX.toFixed(2));
       document.getElementById("tide-now-line").setAttribute("x2", nowX.toFixed(2));
       document.getElementById("tide-now-dot").setAttribute("cx", nowX.toFixed(2));
@@ -1217,13 +859,14 @@
       document.getElementById("tide-now-dot-glow").setAttribute("cx", nowX.toFixed(2));
       document.getElementById("tide-now-dot-glow").setAttribute("cy", nowY.toFixed(2));
 
-      const labelWidth = 160;
-      const labelHeight = 56;
+      const labelWidth = 88;
+      const labelHeight = 30;
       const labelX = clamp(nowX - labelWidth / 2, 8, svgWidth - labelWidth - 8);
-      const labelY = -6;
+      const labelY = 4;
+
       labelLayer.innerHTML = `
         <rect x="${labelX.toFixed(2)}" y="${labelY.toFixed(2)}" width="${labelWidth}" height="${labelHeight}" rx="15" fill="rgba(7,17,28,0.74)" stroke="rgba(255,255,255,0.10)"></rect>
-        <text x="${(labelX + labelWidth / 2).toFixed(2)}" y="${(labelY + 37).toFixed(2)}" fill="#f3f5fb" font-size="26" font-weight="500" text-anchor="middle">${current.height.toFixed(2)}m</text>
+        <text x="${(labelX + labelWidth / 2).toFixed(2)}" y="${(labelY + 19).toFixed(2)}" fill="#f3f5fb" font-size="15" font-weight="500" text-anchor="middle">${current.height.toFixed(2)}m</text>
       `;
 
       return { current, minHRaw, maxHRaw };
@@ -1256,9 +899,12 @@
     }
 
     function populateTideEvents(turns) {
+      const todayStart = startOfTodayLocal();
+      const todayEnd = endOfTodayLocal();
+      const todayTurns = turns.filter(turn => turn.time >= todayStart && turn.time <= todayEnd).slice(0, 6);
       const list = document.getElementById("tide-event-list");
-      document.getElementById("tide-events-sub").textContent = `${turns.length} tides`;
-      list.innerHTML = turns.map(turn => `
+      document.getElementById("tide-events-sub").textContent = `${todayTurns.length} tides`;
+      list.innerHTML = todayTurns.map(turn => `
         <div class="event-row">
           <div class="event-type">${turn.type}</div>
           <div class="event-time">${formatTime(turn.time)}</div>
@@ -1267,16 +913,58 @@
       `).join("");
     }
 
-    /* =========================================================
-       FORECAST PANEL DATA
-       3-hour segmentation logic from 1-hour source data:
-       - wind = 3-hour average
-       - gust = 3-hour maximum
-       - rain = 3-hour total
-       - temp = middle hour value
-       - weather code = middle hour value
-       ========================================================= */
-    let forecastData = [];
+    function normaliseTideFeatures(geojson) {
+      const features = Array.isArray(geojson?.features) ? geojson.features : [];
+      const todayStart = startOfTodayLocal();
+      const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+      const points = features.map(feature => {
+        const props = feature.properties || {};
+        const rawDate = props.time || props.Time || props.datetime || props.DateTime || props.date || props.t || props.T;
+        const rawHeight = props.value ?? props.Value ?? props.level ?? props.Level ?? props.z ?? props.Z ?? props.magnitude;
+        const time = parseApiDate(rawDate);
+        const height = Number(rawHeight);
+        if (Number.isNaN(time.getTime()) || Number.isNaN(height)) return null;
+        return { time, height };
+      }).filter(Boolean)
+        .sort((a, b) => a.time - b.time)
+        .filter(point => point.time >= todayStart && point.time <= tomorrowStart);
+
+      if (!points.length) {
+        throw new Error("No valid tide points parsed from API response");
+      }
+      return points;
+    }
+
+    async function fetchTideData() {
+      const url = `${CONFIG.tideEndpointBase}?key=${encodeURIComponent(CONFIG.tideApiKey)}&sensor=${encodeURIComponent(CONFIG.tideSensor)}&duration=${CONFIG.tideDurationHours}`;
+      const response = await fetch(url, { headers: { "Accept": "application/json" } });
+      if (!response.ok) throw new Error(`Tide API error ${response.status}`);
+      const geojson = await response.json();
+      return normaliseTideFeatures(geojson);
+    }
+
+    function renderTidePanel(points, chipText, chipOk, attribution) {
+      const turns = findTurningPoints(points);
+      const { current, minHRaw, maxHRaw } = drawTideChart(points);
+      populateTideMeta(points, current, minHRaw, maxHRaw);
+      populateNextTide(turns);
+      populateTideEvents(turns);
+      setChip("tide-mode-chip", chipText, chipOk);
+      setTideAttribution(attribution);
+    }
+
+    let forecastData = [
+      { time: "00:00", temp: 7,  wind: 3.5, gust: 7.0,  rain: 0.0, code: 3 },
+      { time: "03:00", temp: 5,  wind: 3.7, gust: 8.0,  rain: 0.0, code: 3 },
+      { time: "06:00", temp: 5,  wind: 5.1, gust: 11.9, rain: 0.0, code: 3 },
+      { time: "09:00", temp: 10, wind: 5.9, gust: 11.9, rain: 0.0, code: 3 },
+      { time: "12:00", temp: 13, wind: 5.2, gust: 13.0, rain: 0.0, code: 0 },
+      { time: "15:00", temp: 12, wind: 4.9, gust: 11.3, rain: 0.0, code: 0 },
+      { time: "18:00", temp: 8,  wind: 3.3, gust: 7.4,  rain: 0.0, code: 0 },
+      { time: "21:00", temp: 5,  wind: 2.0, gust: 5.1,  rain: 0.0, code: 0 },
+      { time: "24:00", temp: 5,  wind: 2.0, gust: 5.1,  rain: 0.0, code: 0 }
+    ];
 
     const weatherMap = {
       0: { icon: "☀", label: "Clear" },
@@ -1302,113 +990,6 @@
       return weatherMap[code] || { icon: "☁", label: "Forecast" };
     }
 
-    function mean(values) {
-      return values.reduce((sum, value) => sum + value, 0) / (values.length || 1);
-    }
-
-    function sum(values) {
-      return values.reduce((sum, value) => sum + value, 0);
-    }
-
-    function parseApiDate(value) {
-      if (value instanceof Date) return value;
-      if (typeof value === "string" && /^\d{14}$/.test(value)) {
-        return new Date(`${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T${value.slice(8, 10)}:${value.slice(10, 12)}:${value.slice(12, 14)}`);
-      }
-      return new Date(value);
-    }
-
-    function toCompactDateTime(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      const hh = String(date.getHours()).padStart(2, "0");
-      const mm = String(date.getMinutes()).padStart(2, "0");
-      const ss = String(date.getSeconds()).padStart(2, "0");
-      return `${y}${m}${d}${hh}${mm}${ss}`;
-    }
-
-    function fallbackForecastData() {
-      return [
-        { time: "00:00", temp: 7,  wind: 3.5, gust: 7.0,  rain: 0.0, code: 3 },
-        { time: "03:00", temp: 5,  wind: 3.7, gust: 8.0,  rain: 0.0, code: 3 },
-        { time: "06:00", temp: 5,  wind: 5.1, gust: 11.9, rain: 0.0, code: 3 },
-        { time: "09:00", temp: 10, wind: 5.9, gust: 11.9, rain: 0.0, code: 3 },
-        { time: "12:00", temp: 13, wind: 5.2, gust: 13.0, rain: 0.0, code: 0 },
-        { time: "15:00", temp: 12, wind: 4.9, gust: 11.3, rain: 0.0, code: 0 },
-        { time: "18:00", temp: 8,  wind: 3.3, gust: 7.4,  rain: 0.0, code: 0 },
-        { time: "21:00", temp: 5,  wind: 2.0, gust: 5.1,  rain: 0.0, code: 0 },
-        { time: "00:00", temp: 5,  wind: 2.0, gust: 5.1,  rain: 0.0, code: 0 }
-      ];
-    }
-
-    function segmentForecast(hourlyRows) {
-      const segments = [];
-      for (let i = 0; i < hourlyRows.length; i += 3) {
-        const chunk = hourlyRows.slice(i, i + 3);
-        if (!chunk.length) continue;
-        const mid = chunk[Math.floor(chunk.length / 2)];
-        segments.push({
-          time: chunk[0].time.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
-          temp: Math.round(mid.temp),
-          wind: Number(mean(chunk.map(d => d.wind)).toFixed(1)),
-          gust: Number(Math.max(...chunk.map(d => d.gust)).toFixed(1)),
-          rain: Number(sum(chunk.map(d => d.rain)).toFixed(1)),
-          code: mid.code
-        });
-      }
-      if (segments.length) {
-        const last = { ...segments[segments.length - 1], time: "00:00" };
-        segments.push(last);
-      }
-      return segments;
-    }
-
-    async function loadForecastData() {
-      try {
-        const res = await fetch(FORECAST_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error(`Forecast API HTTP ${res.status}`);
-        const data = await res.json();
-        if (data.error) throw new Error(data.reason || "Forecast API returned an error");
-
-        const hourly = data.hourly || {};
-        const requiredKeys = ["time", "temperature_2m", "rain", "wind_speed_10m", "wind_gusts_10m", "weather_code"];
-        const missing = requiredKeys.filter(key => safeArrayLength(hourly[key]) === 0);
-        if (missing.length) throw new Error(`Forecast response missing: ${missing.join(", ")}`);
-
-        const rowCount = hourly.time.length;
-        const rows = hourly.time.map((time, i) => ({
-          time: new Date(time),
-          temp: Number(hourly.temperature_2m[i] ?? 0),
-          wind: Number(hourly.wind_speed_10m[i] ?? 0),
-          gust: Number(hourly.wind_gusts_10m[i] ?? hourly.wind_speed_10m[i] ?? 0),
-          rain: Number(hourly.rain[i] ?? 0),
-          code: Number(hourly.weather_code[i] ?? 3)
-        })).filter(row => !Number.isNaN(row.time.getTime()));
-
-        if (!rows.length) throw new Error(`Forecast parsed 0 rows from ${rowCount} hourly timestamps`);
-
-        const start = new Date(rows[0].time);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(start);
-        end.setDate(end.getDate() + 1);
-        const todaysRows = rows.filter(row => row.time >= start && row.time < end).slice(0, 24);
-        const sourceRows = todaysRows.length ? todaysRows : rows.slice(0, 24);
-        forecastData = segmentForecast(sourceRows);
-
-        if (!forecastData.length) throw new Error("Forecast segmentation produced 0 segments");
-
-        document.querySelector('.forecast-panel .mode-chip').textContent = 'Live API';
-        setStatusNote('forecast-status-note', 'Open-Meteo live data loaded');
-        console.log('Forecast live rows', sourceRows.length, 'segments', forecastData.length, data);
-      } catch (err) {
-        console.error('Forecast API load failed', err);
-        forecastData = fallbackForecastData();
-        document.querySelector('.forecast-panel .mode-chip').textContent = 'Fallback';
-        setStatusNote('forecast-status-note', `Forecast fallback: ${err.message}`);
-      }
-    }
-
     function getForecastWindScale() {
       const maxVal = Math.max(...forecastData.map(d => Math.max(d.wind, d.gust)));
       if (maxVal <= 30) return 30;
@@ -1426,13 +1007,14 @@
       document.getElementById("forecast-weather-grid").innerHTML = forecastData.map(d => `
         <div class="forecast-weather-slot" title="${wx(d.code).label}">
           <div class="forecast-weather-icon">${wx(d.code).icon}</div>
-          <div class="forecast-weather-temp">${d.temp}°</div>
+          <div class="forecast-weather-temp">${Math.round(d.temp)}°</div>
         </div>
       `).join("");
 
       document.getElementById("forecast-time-grid").innerHTML = forecastData.map(d => `<div>${hourOnlyLabel(d.time)}</div>`).join("");
 
       const windTicks = windTop === 30 ? [30, 20, 10, 0] : windTop === 40 ? [40, 30, 20, 10, 0] : [50, 40, 30, 20, 10, 0];
+      document.getElementById("forecast-wind-axis").style.gridTemplateRows = `repeat(${windTicks.length}, 1fr)`;
       document.getElementById("forecast-wind-axis").innerHTML = windTicks.map(v => `<div>${v}kn</div>`).join("");
 
       const maxRain = Math.max(...forecastData.map(d => d.rain));
@@ -1448,7 +1030,7 @@
     function drawForecastWind(windTop) {
       const svg = document.getElementById("forecast-wind-svg");
       const W = 1000, H = 250;
-      const left = 8, right = 8, top = 28, bottom = 14;
+      const left = 6, right = 6, top = 10, bottom = 20;
       const plotH = H - top - bottom;
       const n = forecastData.length;
       const x = i => left + i * ((W - left - right) / (n - 1));
@@ -1488,7 +1070,7 @@
     function drawForecastRain(rainTop) {
       const svg = document.getElementById("forecast-rain-svg");
       const W = 1000, H = 120;
-      const top = 10, bottom = 20;
+      const top = 10, bottom = 18;
       const plotH = H - top - bottom;
       const n = forecastData.length;
       const step = W / n;
@@ -1518,6 +1100,7 @@
 
       const nowX = getNowFraction() * W;
       const hasRain = forecastData.some(d => d.rain > 0);
+
       svg.innerHTML = `
         ${grid}
         <line x1="${nowX.toFixed(2)}" y1="0" x2="${nowX.toFixed(2)}" y2="${H}" stroke="var(--accent-coral)" stroke-width="2.2" stroke-dasharray="6 6"></line>
@@ -1526,142 +1109,114 @@
       `;
     }
 
-    /* =========================================================
-       PANEL INITIALISERS
-       ========================================================= */
-   async function fetchTidePoints() {
-  console.log("fetchTidePoints started");
+    function populateForecastMeta() {
+      const now = new Date();
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const segmentMinutes = 3 * 60;
+      const index = clamp(Math.floor(nowMinutes / segmentMinutes), 0, forecastData.length - 2);
+      const current = forecastData[index];
+      const peak = forecastData.reduce((best, item) => item.wind > best.wind ? item : best, forecastData[0]);
+      const totalRain = forecastData.reduce((sum, item) => sum + item.rain, 0);
+      const minTemp = Math.min(...forecastData.map(d => d.temp));
+      const maxTemp = Math.max(...forecastData.map(d => d.temp));
 
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const ts = toCompactDateTime(start);
-
-  const urls = [
-    `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${encodeURIComponent(TIDE_SENSOR_ID)}&duration=24`,
-    `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${encodeURIComponent(TIDE_SENSOR_ID)}&duration=24`
-  ];
-
-  let lastError = "Unknown tide error";
-
-  for (const url of urls) {
-    try {
-      console.log("Trying tide URL:", url);
-
-      const res = await fetch(url, {
-        headers: { Accept: "application/json" }
-      });
-
-      console.log("Tide HTTP status:", res.status, url);
-
-      const text = await res.text();
-      console.log("Tide raw text:", text.slice(0, 1000));
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (jsonErr) {
-        throw new Error(`Response was not valid JSON: ${text.slice(0, 200)}`);
-      }
-
-      const features = Array.isArray(data?.features) ? data.features : [];
-      console.log("Tide feature count:", features.length);
-      console.log("First tide feature:", features[0]);
-
-      const points = features.map((feature) => {
-        const props = feature?.properties || {};
-        const coords = Array.isArray(feature?.geometry?.coordinates)
-          ? feature.geometry.coordinates
-          : [];
-
-        const timeRaw =
-          props.time ??
-          props.dateTime ??
-          props.datetime ??
-          props.timestamp ??
-          props.date ??
-          props.referenceTime ??
-          props.eventTime ??
-          props.dt ??
-          null;
-
-        const heightRaw =
-          props.value ??
-          props.measurement ??
-          props.level ??
-          props.tide ??
-          props.elevation ??
-          props.height ??
-          props.z ??
-          coords[2] ??
-          null;
-
-        if (!timeRaw || heightRaw == null) return null;
-
-        const time = parseApiDate(timeRaw);
-        const height = Number(heightRaw);
-
-        if (Number.isNaN(time.getTime()) || !Number.isFinite(height)) return null;
-
-        return { time, height };
-      }).filter(Boolean).sort((a, b) => a.time - b.time);
-
-      console.log("Parsed tide points:", points.length);
-
-      if (points.length) return points;
-
-      lastError = `No tide points parsed from response at ${url}`;
-    } catch (err) {
-      console.error("Tide fetch attempt failed:", err);
-      lastError = `${url} -> ${err.message}`;
-    }
-  }
-
-  throw new Error(lastError);
-}
-
-    async function initTidePanel() {
-      try {
-        const points = await fetchTidePoints();
-        const turns = findTurningPoints(points);
-        const { current, minHRaw, maxHRaw } = drawTideChart(points);
-        populateTideMeta(points, current, minHRaw, maxHRaw);
-        populateNextTide(turns);
-        populateTideEvents(turns);
-        document.querySelector('.tide-panel .mode-chip').textContent = 'Live API';
-        setStatusNote('tide-status-note', 'CCO live data loaded');
-      } catch (err) {
-        console.error('Tide API load failed', err);
-        const points = generateTodaySampleTide();
-        const turns = findTurningPoints(points);
-        const { current, minHRaw, maxHRaw } = drawTideChart(points);
-        populateTideMeta(points, current, minHRaw, maxHRaw);
-        populateNextTide(turns);
-        populateTideEvents(turns);
-        document.querySelector('.tide-panel .mode-chip').textContent = 'Fallback';
-        setStatusNote('tide-status-note', `Tide fallback: ${err.message}`);
-      }
+      document.getElementById("forecast-wind-now").textContent = `${current.wind.toFixed(1)}kn`;
+      document.getElementById("forecast-gust-now").textContent = `gust ${current.gust.toFixed(1)}kn`;
+      document.getElementById("forecast-peak-wind").textContent = `${peak.wind.toFixed(1)}kn`;
+      document.getElementById("forecast-peak-time").textContent = hourOnlyLabel(peak.time);
+      document.getElementById("forecast-rain-total").textContent = `${totalRain.toFixed(1)}mm`;
+      document.getElementById("forecast-temp-range").textContent = `${Math.round(minTemp)}° / ${Math.round(maxTemp)}°`;
     }
 
-    async function initForecastPanel() {
-      await loadForecastData();
+    function aggregateForecastTo3Hour(hourly) {
+      const bins = [];
+      const len = Math.min(
+        hourly.time?.length || 0,
+        hourly.temperature_2m?.length || 0,
+        hourly.rain?.length || 0,
+        hourly.wind_speed_10m?.length || 0,
+        hourly.wind_gusts_10m?.length || 0,
+        hourly.weather_code?.length || 0
+      );
+
+      for (let i = 0; i < len; i += 3) {
+        const sliceEnd = Math.min(i + 3, len);
+        const count = sliceEnd - i;
+        if (count <= 0) continue;
+
+        const mid = Math.min(i + 1, sliceEnd - 1);
+        bins.push({
+          time: new Date(hourly.time[mid]).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+          temp: hourly.temperature_2m[mid],
+          wind: average(hourly.wind_speed_10m.slice(i, sliceEnd)),
+          gust: Math.max(...hourly.wind_gusts_10m.slice(i, sliceEnd)),
+          rain: sum(hourly.rain.slice(i, sliceEnd)),
+          code: hourly.weather_code[mid]
+        });
+      }
+
+      const firstNine = bins.slice(0, 9);
+      if (firstNine.length && firstNine.length < 9) {
+        while (firstNine.length < 9) firstNine.push({ ...firstNine[firstNine.length - 1] });
+      }
+      return firstNine;
+    }
+
+    function average(arr) {
+      if (!arr.length) return 0;
+      return arr.reduce((a, b) => a + Number(b || 0), 0) / arr.length;
+    }
+
+    function sum(arr) {
+      return arr.reduce((a, b) => a + Number(b || 0), 0);
+    }
+
+    async function fetchForecastData() {
+      const response = await fetch(CONFIG.forecastUrl);
+      if (!response.ok) throw new Error(`Forecast API error ${response.status}`);
+      const data = await response.json();
+      if (!data?.hourly) throw new Error("Forecast API missing hourly payload");
+      const aggregated = aggregateForecastTo3Hour(data.hourly);
+      if (!aggregated.length) throw new Error("Forecast aggregation returned no points");
+      forecastData = aggregated;
+    }
+
+    function renderForecastPanel(chipText, chipOk) {
       const windTop = getForecastWindScale();
       const rainTop = buildForecastLabels(windTop);
       drawForecastWind(windTop);
       drawForecastRain(rainTop);
+      populateForecastMeta();
+      setChip("forecast-mode-chip", chipText, chipOk);
     }
 
-    async function bootDashboard() {
-      updateClock();
-      refreshAstronomy();
-      initWebcam();
-      await initTidePanel();
-      await initForecastPanel();
+    async function initTidePanel() {
+      const fallbackAttribution = "Using local sample tide data. If the live API does not load on GitHub Pages, check that the CCO key domain matches your deployed site and that the browser is sending the Referer header.";
+      try {
+        const points = await fetchTideData();
+        renderTidePanel(
+          points,
+          "Live tide API",
+          true,
+          "Real time data displayed on this page are from the Regional Coastal Monitoring Programme, made freely available under the terms of the Open Government Licence. Please note that these are real-time data and are not quality-controlled."
+        );
+      } catch (error) {
+        console.error("Tide API failed, using fallback sample data.", error);
+        renderTidePanel(generateTodaySampleTide(), "Sample tide fallback", false, fallbackAttribution);
+      }
     }
 
-    bootDashboard();
+    async function initForecastPanel() {
+      try {
+        await fetchForecastData();
+        renderForecastPanel("Live forecast API", true);
+      } catch (error) {
+        console.error("Forecast API failed, using fallback sample data.", error);
+        renderForecastPanel("Sample forecast fallback", false);
+      }
+    }
 
-    setInterval(updateClock, 30000);
-    setInterval(refreshAstronomy, 60 * 60 * 1000);
+    Promise.allSettled([initTidePanel(), initForecastPanel()]);
   </script>
 </body>
 </html>
