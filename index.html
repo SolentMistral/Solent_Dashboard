@@ -929,7 +929,9 @@
     const LYMINGTON = { lat: 50.7592, lon: -1.5383 };
     const FORECAST_URL = "https://api.open-meteo.com/v1/forecast?latitude=50.7592&longitude=-1.5383&hourly=temperature_2m,precipitation_probability,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code&models=ukmo_uk_deterministic_2km&timezone=Europe%2FLondon&forecast_days=1&wind_speed_unit=kn";
     const TIDE_API_KEY = "b8a696396eec2787361f6a4e67951fd8";
-    const TIDE_SENSOR_ID = 87;
+    const TIDE_SENSOR_ID = "Lymington";
+
+    console.log("DASHBOARD BUILD v4");
 
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
@@ -1527,49 +1529,95 @@
     /* =========================================================
        PANEL INITIALISERS
        ========================================================= */
-    async function fetchTidePoints() {
-      const start = new Date();
-      start.setHours(0, 0, 0, 0);
-      const ts = toCompactDateTime(start);
-      const urls = [
-        `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`,
-        `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${TIDE_SENSOR_ID}&duration=24`
-      ];
+   async function fetchTidePoints() {
+  console.log("fetchTidePoints started");
 
-      let lastError = null;
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const ts = toCompactDateTime(start);
 
-      for (const url of urls) {
-        try {
-          const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/json" } });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (data.error) throw new Error(data.reason || 'API error');
+  const urls = [
+    `https://coastalmonitoring.org/observations/tidepredictions/latest.geojson?key=${TIDE_API_KEY}&sensor=${encodeURIComponent(TIDE_SENSOR_ID)}&duration=24`,
+    `https://coastalmonitoring.org/observations/tidepredictions/${ts}.geojson?key=${TIDE_API_KEY}&sensor=${encodeURIComponent(TIDE_SENSOR_ID)}&duration=24`
+  ];
 
-          const features = Array.isArray(data.features) ? data.features : [];
-          const rawPoints = features.map(feature => {
-            const props = feature.properties || {};
-            const coords = feature.geometry && Array.isArray(feature.geometry.coordinates) ? feature.geometry.coordinates : [];
-            const timeRaw = props.time || props.datetime || props.date || props.timestamp || props.obs_date || props.DateTime || props.referenceTime || props.dt;
-            const heightRaw = props.value ?? props.level ?? props.tide ?? props.elevation ?? props.measurement ?? props.z ?? coords[2];
-            const time = parseApiDate(timeRaw);
-            const height = Number(heightRaw);
-            return (timeRaw && Number.isFinite(height) && !Number.isNaN(time.getTime())) ? { time, height } : null;
-          }).filter(Boolean).sort((a, b) => a.time - b.time);
+  let lastError = "Unknown tide error";
 
-          if (rawPoints.length) {
-            console.log('Tide live points', rawPoints.length, 'from', url, data);
-            return rawPoints;
-          }
+  for (const url of urls) {
+    try {
+      console.log("Trying tide URL:", url);
 
-          throw new Error('No tide points parsed from response');
-        } catch (err) {
-          lastError = new Error(`${url} -> ${err.message}`);
-          console.error('Tide fetch attempt failed', lastError);
-        }
+      const res = await fetch(url, {
+        headers: { Accept: "application/json" }
+      });
+
+      console.log("Tide HTTP status:", res.status, url);
+
+      const text = await res.text();
+      console.log("Tide raw text:", text.slice(0, 1000));
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (jsonErr) {
+        throw new Error(`Response was not valid JSON: ${text.slice(0, 200)}`);
       }
 
-      throw lastError || new Error('All tide API attempts failed');
+      const features = Array.isArray(data?.features) ? data.features : [];
+      console.log("Tide feature count:", features.length);
+      console.log("First tide feature:", features[0]);
+
+      const points = features.map((feature) => {
+        const props = feature?.properties || {};
+        const coords = Array.isArray(feature?.geometry?.coordinates)
+          ? feature.geometry.coordinates
+          : [];
+
+        const timeRaw =
+          props.time ??
+          props.dateTime ??
+          props.datetime ??
+          props.timestamp ??
+          props.date ??
+          props.referenceTime ??
+          props.eventTime ??
+          props.dt ??
+          null;
+
+        const heightRaw =
+          props.value ??
+          props.measurement ??
+          props.level ??
+          props.tide ??
+          props.elevation ??
+          props.height ??
+          props.z ??
+          coords[2] ??
+          null;
+
+        if (!timeRaw || heightRaw == null) return null;
+
+        const time = parseApiDate(timeRaw);
+        const height = Number(heightRaw);
+
+        if (Number.isNaN(time.getTime()) || !Number.isFinite(height)) return null;
+
+        return { time, height };
+      }).filter(Boolean).sort((a, b) => a.time - b.time);
+
+      console.log("Parsed tide points:", points.length);
+
+      if (points.length) return points;
+
+      lastError = `No tide points parsed from response at ${url}`;
+    } catch (err) {
+      console.error("Tide fetch attempt failed:", err);
+      lastError = `${url} -> ${err.message}`;
     }
+  }
+
+  throw new Error(lastError);
+}
 
     async function initTidePanel() {
       try {
