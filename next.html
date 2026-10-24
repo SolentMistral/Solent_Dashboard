@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en" data-theme="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solent Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Video player for the webcam stream (version pinned so it can't change underneath us) -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+<style>
+/* =====================================================================
+   1. DESIGN TOKENS
+   Every colour and size lives here. A theme is just a different set of
+   these values. The page switches day/night automatically at sunrise and
+   sunset (add ?theme=day or ?theme=night to the address to force one).
+   ===================================================================== */
+:root {
+  --pad: 14px;            /* outer margin */
+  --gap: 12px;            /* space between tiles */
+  --strip-h: 38px;        /* top strip height */
+  --hero-weight: 600;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+[data-theme="day"] {
+  --bg: #F7F6F2;  --card: transparent; --card-solid: #F7F6F2; --line: #E1DED6; --line-strong: #CDC9BF;
+  --ink: #0F1B2D; --ink-2: #4A5463; --muted: #8B919A;
+  --sea: #1D6FA5; --sea-fill: rgba(29,111,165,.12);
+  --wind: #0F1B2D; --gust: rgba(15,27,45,.11);
+  --rain: #5B93C9; --now: #E4572E; --warn: #B45309;
+  --night: rgba(15,27,45,.045); --day: transparent;
+  --moon-dark: #3A4352; --moon-lit: #F1E6BE;
+  --cam-dim: 1; --wf-filter: saturate(.45);
+}
+[data-theme="night"] {
+  --bg: #0A0D11;  --card: transparent; --card-solid: #0A0D11; --line: #1D242C; --line-strong: #2A333D;
+  --ink: #C7CFD8; --ink-2: #8792A0; --muted: #5C6672;
+  --sea: #4D8FC0; --sea-fill: rgba(77,143,192,.14);
+  --wind: #C7CFD8; --gust: rgba(199,207,216,.11);
+  --rain: #3F73A3; --now: #C9603F; --warn: #D29A4A;
+  --night: transparent; --day: rgba(255,255,255,.03);
+  --moon-dark: #222A33; --moon-lit: #C7CFD8;
+  --cam-dim: .8; --wf-filter: saturate(.4) brightness(.62);
+}
+
+/* =====================================================================
+   2. PAGE LAYOUT
+   One grid. The webcam column is sized from the available height so it
+   stays 16:9, but never takes more than 46% of the width.
+   ===================================================================== */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }   /* so hidden notes stay hidden even when styled */
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+  font-family: var(--font); -webkit-font-smoothing: antialiased; overflow: hidden; }
+a { color: inherit; }
+
+.app {
+  --rows-h: calc(100dvh - 2 * var(--pad) - var(--strip-h) - 2 * var(--gap));
+  height: 100vh; height: 100dvh;
+  padding: var(--pad);
+  display: grid;
+  gap: var(--gap);
+  /* tiles get 45% of the height, the timeline 55% */
+  grid-template-rows: var(--strip-h) minmax(0, 45fr) minmax(0, 55fr);
+  /* webcam 16:9 · wind rose square (+16px for its left margin) · tide/sea takes the rest */
+  grid-template-columns: min(calc(var(--rows-h) * .45 * 16 / 9), 46%) calc(var(--rows-h) * .45 + 16px) minmax(0, 1fr);
+  grid-template-areas:
+    "strip strip strip"
+    "cam   wind  water"
+    "time  time  time";
+}
+.card { min-width: 0; min-height: 0; overflow: hidden; container-type: size; position: relative; }
+/* faint separators instead of boxes */
+.wind, .water { border-left: 1px solid var(--line); }
+.timeline { border-top: 1px solid var(--line); }
+
+/* Shared text styles */
+.label { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.title { font-size: 15px; font-weight: 600; color: var(--ink); }
+.unit  { font-weight: 500; color: var(--ink-2); }
+.card-head { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.card-head .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.warn { color: var(--warn); }
+
+/* ---------- Top strip ---------- */
+.strip { grid-area: strip; display: flex; align-items: center; gap: 20px; padding: 0 4px; min-width: 0; }
+.clock { font-size: 28px; font-weight: var(--hero-weight); letter-spacing: -.01em; line-height: 1; }
+.date  { font-size: 15px; color: var(--ink-2); font-weight: 500; white-space: nowrap; }
+.strip .spacer { flex: 1; }
+.chip  { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 500; white-space: nowrap; }
+.chip svg { width: 22px; height: 22px; color: var(--ink-2); flex: none; }
+.chip .label { font-size: 13px; }
+.updated { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+.updated::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sea); opacity: .8; }
+.updated.is-warn { color: var(--warn); font-weight: 600; }
+.updated.is-warn::before { background: var(--warn); }
+
+/* ---------- Webcam ---------- */
+.cam { grid-area: cam; background: #000; border-radius: 6px; }
+.cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: var(--cam-dim); }
+.cam-note { position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+  color: #9aa3ad; font-size: 14px; padding: 20px; }
+
+/* ---------- Wind (WeatherFile dial + forecast for comparison) ---------- */
+.wind { grid-area: wind; padding: 0 0 0 16px; }
+.dial-wrap { width: 100%; height: 100%; display: grid; place-items: center; }
+/* The widget is loaded at its natural 300px size, cropped to the dial and scaled to fit (see fitWidget) */
+.wf-clip { position: relative; overflow: hidden; border-radius: 50%; }
+.wf-clip iframe { position: absolute; left: 0; top: 0; width: 300px; height: 300px; border: 0;
+  transform-origin: 0 0; pointer-events: none; filter: var(--wf-filter); }
+.stat .value { font-size: 18px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
+.stat .value .unit { font-size: 14px; }
+
+/* ---------- Tide + sea ---------- */
+.water { grid-area: water; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 5px; }
+.tide-now { display: flex; align-items: baseline; gap: 10px; }
+.tide-now .big { font-size: clamp(34px, 19cqi, 64px); font-weight: var(--hero-weight); letter-spacing: -.02em; line-height: .95; }
+.tide-now .big .unit { font-size: .42em; letter-spacing: 0; margin-left: 2px; }
+.trend { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--sea); white-space: nowrap; }
+.trend svg { width: 14px; height: 14px; }
+.rows { display: grid; gap: 4px; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14.5px; white-space: nowrap; }
+.row .k { color: var(--ink-2); }
+.row .v { font-weight: 600; font-variant-numeric: tabular-nums; }
+.row .v .unit { font-weight: 500; }
+.credits { margin-top: auto; font-size: 10px; line-height: 1.35; color: var(--muted); }
+.credits a { text-decoration: none; white-space: nowrap; }
+.divider { height: 1px; background: var(--line); margin: 2px 0; flex: none; }
+
+/* ---------- Timeline ---------- */
+.timeline { grid-area: time; padding: 10px 0 0 0; }
+.timeline svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.t-lane  { font: 600 12px var(--font); fill: var(--ink-2); }
+.t-tick  { font: 500 11px var(--font); fill: var(--muted); font-variant-numeric: tabular-nums; }
+.t-hour  { font: 500 12px var(--font); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.t-day   { font: 700 12px var(--font); fill: var(--ink); }
+.t-temp  { font: 600 12.5px var(--font); fill: var(--ink); }
+.t-event { font: 600 11.5px var(--font); fill: var(--ink); }
+.t-event-h { font: 500 11.5px var(--font); fill: var(--ink-2); }
+.t-now   { font: 700 11.5px var(--font); fill: var(--now); }
+.t-none  { font: 500 11.5px var(--font); fill: var(--muted); }
+.halo    { paint-order: stroke; stroke: var(--card-solid); stroke-width: 3.5px; stroke-linejoin: round; }
+
+/* ---------- Debug overlay (add ?debug to the address) ---------- */
+.debug { position: fixed; left: 8px; bottom: 8px; z-index: 9; font: 11px/1.4 ui-monospace, monospace;
+  background: rgba(0,0,0,.75); color: #fff; padding: 6px 8px; border-radius: 6px; white-space: pre; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 1 · Top strip: time, date, sun, moon, data freshness -->
+  <header class="strip">
+    <div class="clock" id="clock">--:--</div>
+    <div class="date" id="date"></div>
+    <div class="spacer"></div>
+    <div class="chip" id="sunrise"></div>
+    <div class="chip" id="sunset"></div>
+    <div class="chip" id="moon"></div>
+    <div class="updated" id="updated">Loading…</div>
+  </header>
+
+  <!-- 2 · Webcam -->
+  <section class="card cam">
+    <video id="cam-video" autoplay muted playsinline></video>
+    <div class="cam-note" id="cam-note" hidden>Webcam unavailable — retrying</div>
+  </section>
+
+  <!-- 3 · Wind: live WeatherFile dial (Lymington Starting Platform), filling its square -->
+  <section class="card wind" aria-label="Live wind">
+    <div class="dial-wrap" id="dial-wrap">
+      <div class="wf-clip" id="wf-clip"><iframe id="wf-frame" scrolling="no" title="Live wind, Lymington Starting Platform"
+        src="https://weatherfile.com/widgets/wind-dial/wind-dial.php?locationID=GBR00001&wsunits=kts&locationname=false"></iframe></div>
+    </div>
+  </section>
+
+  <!-- 4 · Tide now + sea state -->
+  <section class="card water">
+    <div class="card-head"><span class="title">Tide</span><span class="label">Lymington</span></div>
+    <div class="tide-now"><div class="big" id="tide-height">–</div><div class="trend" id="tide-trend"></div></div>
+    <div class="rows" id="tide-next"></div>
+    <div class="divider"></div>
+    <div class="card-head"><span class="title">Sea</span><span class="label" id="sea-label">Milford buoy</span></div>
+    <div class="rows" id="sea"></div>
+    <div class="credits">Data: <a href="https://channelcoast.org">Regional Coastal Monitoring Programme</a>, <a href="https://open-meteo.com">Open-Meteo</a>, <a href="https://weatherfile.com">WeatherFile</a></div>
+  </section>
+
+  <!-- 5 · Shared timeline: sky, wind, tide, rain on one time axis -->
+  <section class="card timeline"><svg id="timeline" aria-label="Forecast timeline"></svg></section>
+</div>
+<div class="debug" id="debug" hidden></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   3. SETTINGS
+   ===================================================================== */
+const CONFIG = {
+  lat: 50.7592, lon: -1.5383,                       // Lymington
+  timeZone: "Europe/London",
+  ccoKey: "b8a696396eec2787361f6a4e67951fd8",       // only works from solentmistral.github.io
+  tideSensor: 87,                                   // CCO tide predictions: Lymington
+  waveSensor: 73,                                   // CCO wave buoy: Milford (Christchurch Bay)
+  webcam: "https://camsecure.uk/HLS/royalsolent.m3u8",
+  // Open-Meteo: ask for ONE model only (two models rename every field). Fallback model if it fails.
+  forecastModels: ["ukmo_uk_deterministic_2km", "best_match"],
+  windowBefore: 3, windowAfter: 21,                 // timeline: hours before / after now
+};
+const MIN = 60e3, HOUR = 3600e3;
+
+// How often each source is fetched, and when we call it out of date
+const SOURCES = {
+  tide:     { every: 60 * MIN, retry: 2 * MIN, staleAfter: 6 * HOUR },
+  waves:    { every: 15 * MIN, retry: 2 * MIN, staleAfter: 2 * HOUR },
+  forecast: { every: 15 * MIN, retry: 2 * MIN, staleAfter: 3 * HOUR },
+};
+
+/* =====================================================================
+   4. SMALL HELPERS
+   ===================================================================== */
+const params = new URLSearchParams(location.search);
+const FIXED_NOW = params.get("now") ? new Date(params.get("now")) : null;   // for testing only
+const now = () => FIXED_NOW || new Date();
+const el = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = (opts) => new Intl.DateTimeFormat("en-GB", { timeZone: CONFIG.timeZone, ...opts });
+const hhmm = (d) => fmt({ hour: "2-digit", minute: "2-digit" }).format(d);
+const localHour = (d) => Number(fmt({ hour: "2-digit", hourCycle: "h23" }).format(d));
+const localMinute = (d) => Number(fmt({ minute: "2-digit" }).format(d));
+const localDay = (d) => fmt({ year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+const weekday = (d) => fmt({ weekday: "short" }).format(d);
+const COMPASS = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+const compass = (deg) => COMPASS[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16];
+const ago = (ms) => ms < HOUR ? `${Math.round(ms / MIN)} min` : `${Math.round(ms / HOUR)} h`;
+
+// fetch with a time limit, so a hung request can never freeze a panel
+async function fetchJSON(url, timeoutMs = 20000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* =====================================================================
+   5. DATA SOURCES
+   Each loader returns clean data or throws. On failure the dashboard
+   keeps showing the last good data and retries a couple of minutes later.
+   ===================================================================== */
+
+// CCO timestamps look like 20261023#220000 and are UTC.
+function ccoTime(s) {
+  const m = /^(\d{4})(\d{2})(\d{2})#?(\d{2})(\d{2})(\d{2})$/.exec(s);
+  if (!m) return null;
+  return new Date(Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]));
+}
+function ccoStamp(d) {   // Date -> YYYYMMDDhhmmss (UTC)
+  return d.toISOString().replace(/[-:T]/g, "").slice(0, 14);
+}
+
+// Tide predictions. The CCO timestamp is the END of the window, so asking for
+// "now + 24 h" with a 36 h duration returns 12 h of history and 24 h ahead.
+async function loadTide() {
+  const end = new Date(Math.ceil((+now() + 24 * HOUR) / HOUR) * HOUR);
+  const url = `https://coastalmonitoring.org/observations/tidepredictions/${ccoStamp(end)}.geojson`
+            + `?key=${CONFIG.ccoKey}&sensor=${CONFIG.tideSensor}&duration=36`;
+  const json = await fetchJSON(url);
+  const byStamp = new Map();
+  for (const f of json.features || []) {
+    const t = ccoTime(f.properties?.date), h = Number(f.properties?.value);
+    if (!t || !Number.isFinite(h)) continue;
+    if (!byStamp.has(+t)) byStamp.set(+t, []);
+    byStamp.get(+t).push(h);
+  }
+  // Clock-change glitch: CCO labels the 01:xx UTC values as 00:xx on the night the clocks
+  // go back, giving duplicate times. Keep the value that continues the curve, move the other on 1 h.
+  const pts = [], moved = [];
+  for (const t of [...byStamp.keys()].sort((a, b) => a - b)) {
+    const vals = byStamp.get(t);
+    if (vals.length === 1 || !pts.length) { pts.push({ t: new Date(t), h: vals[0] }); continue; }
+    const prev = pts[pts.length - 1].h;
+    vals.sort((a, b) => Math.abs(a - prev) - Math.abs(b - prev));
+    pts.push({ t: new Date(t), h: vals[0] });
+    moved.push({ t: new Date(t + HOUR), h: vals[1] });
+  }
+  const all = pts.concat(moved).sort((a, b) => a.t - b.t);
+  if (all.length < 20) throw new Error("too few tide points");
+  return all;
+}
+
+// High/low water = highest/lowest point within ±2.5 h (copes with Lymington's long stand).
+function tideEvents(tide) {
+  const out = [], win = 2.5 * HOUR;
+  tide.forEach((p, i) => {
+    if (i === 0 || i === tide.length - 1) return;
+    const near = tide.filter(q => Math.abs(q.t - p.t) <= win);
+    if (near[0] === p || near[near.length - 1] === p) return;          // needs data on both sides
+    const type = near.every(q => q.h <= p.h) ? "HW" : near.every(q => q.h >= p.h) ? "LW" : null;
+    if (!type) return;
+    const last = out[out.length - 1];
+    if (last && last.type === type && p.t - last.t < 4 * HOUR) return;
+    out.push({ type, t: p.t, h: p.h });
+  });
+  return out;
+}
+function tideAt(tide, t) {
+  for (let i = 1; i < tide.length; i++) {
+    if (tide[i].t >= t) {
+      const a = tide[i - 1], b = tide[i], f = (t - a.t) / (b.t - a.t);
+      return a.h + (b.h - a.h) * f;
+    }
+  }
+  return null;
+}
+
+// Waves and sea temperature from the Milford buoy (latest reading).
+async function loadWaves() {
+  const url = `https://coastalmonitoring.org/observations/waves/latest.geojson`
+            + `?key=${CONFIG.ccoKey}&sensor=${CONFIG.waveSensor}&duration=3`;
+  const json = await fetchJSON(url);
+  const rows = (json.features || []).map(f => f.properties).filter(p => ccoTime(p.date) && p.hs != null)
+    .sort((a, b) => ccoTime(a.date) - ccoTime(b.date));
+  const p = rows[rows.length - 1];
+  if (!p) throw new Error("no wave reading");
+  return { t: ccoTime(p.date), hs: +p.hs, hmax: +p.hmax, tp: +p.tp, dir: +p.pdir,
+           sst: p.sst != null && p.sst !== "" ? +p.sst : null };
+}
+
+// Hourly forecast from Open-Meteo (times as Unix seconds, so no time-zone guessing).
+async function loadForecast() {
+  let lastErr;
+  for (const model of CONFIG.forecastModels) {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}`
+        + `&hourly=temperature_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code`
+        + `&models=${model}&wind_speed_unit=kn&timeformat=unixtime&past_days=1&forecast_days=2`;
+      const json = await fetchJSON(url);
+      if (json.error) throw new Error(json.reason || "forecast error");
+      const h = json.hourly || {};
+      const rows = (h.time || []).map((t, i) => ({
+        t: new Date(t * 1000), temp: h.temperature_2m?.[i], rain: h.precipitation?.[i],
+        wind: h.wind_speed_10m?.[i], gust: h.wind_gusts_10m?.[i], dir: h.wind_direction_10m?.[i], code: h.weather_code?.[i],
+      })).filter(r => [r.temp, r.wind, r.gust, r.dir, r.code].every(v => v != null));
+      // must cover the whole timeline window, otherwise try the next model
+      const until = +now() + CONFIG.windowAfter * HOUR;
+      if (!rows.length || rows[rows.length - 1].t < until - 2 * HOUR) throw new Error(`${model}: forecast too short`);
+      rows.forEach(r => { r.rain = r.rain ?? 0; });
+      rows.model = model;
+      return rows;
+    } catch (err) { lastErr = err; }
+  }
+  throw lastErr;
+}
+
+/* =====================================================================
+   6. SUN AND MOON (calculated here — no internet needed)
+   ===================================================================== */
+// NOAA sunrise/sunset formula; accurate to about a minute.
+function sunEvent(y, m, d, rising) {
+  const rad = Math.PI / 180, { lat, lon } = CONFIG;
+  const N = Math.round((Date.UTC(y, m, d) - Date.UTC(y, 0, 0)) / 864e5);
+  const lngHour = lon / 15, t = N + ((rising ? 6 : 18) - lngHour) / 24;
+  const M = 0.9856 * t - 3.289;
+  const L = (((M + 1.916 * Math.sin(M * rad) + 0.020 * Math.sin(2 * M * rad) + 282.634) % 360) + 360) % 360;
+  let RA = ((Math.atan(0.91764 * Math.tan(L * rad)) / rad) % 360 + 360) % 360;
+  RA = (RA + (Math.floor(L / 90) * 90 - Math.floor(RA / 90) * 90)) / 15;
+  const sinDec = 0.39782 * Math.sin(L * rad), cosDec = Math.cos(Math.asin(sinDec));
+  const cosH = (Math.cos(90.833 * rad) - sinDec * Math.sin(lat * rad)) / (cosDec * Math.cos(lat * rad));
+  let H = Math.acos(cosH) / rad; if (rising) H = 360 - H;
+  const T = H / 15 + RA - 0.06571 * t - 6.622;
+  return new Date(Date.UTC(y, m, d) + ((((T - lngHour) % 24) + 24) % 24) * HOUR);
+}
+function sunDays(around) {   // sunrise/sunset for yesterday .. +2 days (UTC dates)
+  const out = [];
+  for (let k = -1; k <= 2; k++) {
+    const d = new Date(+around + k * 864e5);
+    const [y, m, dd] = [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()];
+    out.push({ rise: sunEvent(y, m, dd, true), set: sunEvent(y, m, dd, false) });
+  }
+  return out;
+}
+const isDaylight = (suns, t) => suns.some(s => t >= s.rise && t < s.set);
+
+function moonInfo(date) {
+  const syn = 29.53058867, ref = Date.UTC(2000, 0, 6, 18, 14);   // a known new moon
+  const frac = ((((date - ref) / 864e5) % syn) + syn) % syn / syn;
+  const illum = Math.round((1 - Math.cos(2 * Math.PI * frac)) * 50);
+  const names = [[.03,"New moon"],[.22,"Waxing crescent"],[.28,"First quarter"],[.47,"Waxing gibbous"],
+                 [.53,"Full moon"],[.72,"Waning gibbous"],[.78,"Last quarter"],[.97,"Waning crescent"],[1.01,"New moon"]];
+  return { frac, illum, name: names.find(([f]) => frac < f)[1] };
+}
+
+/* =====================================================================
+   7. ICONS (simple line icons drawn here — no licences needed)
+   ===================================================================== */
+const ICON = {
+  sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>',
+  moon: '<path d="M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1z"/>',
+  cloud: '<path d="M7 19h10.2a4.3 4.3 0 0 0 .5-8.57A6 6 0 0 0 6.2 11.2 3.9 3.9 0 0 0 7 19z"/>',
+  part: '<path d="M8.5 4v1.6M3.6 9.2h1.6M4.9 5.6l1.1 1.1M12.6 5.6l-1.1 1.1"/><path d="M6.1 11.7a3.2 3.2 0 0 1 5.6-2.6"/><path d="M8.6 20h9a3.8 3.8 0 0 0 .4-7.57 5.3 5.3 0 0 0-10.1 1.4A3.1 3.1 0 0 0 8.6 20z"/>',
+  partNight: '<path d="M11.2 6.2a4.5 4.5 0 0 1-5.6 5.6 4.6 4.6 0 0 0 1.2 1.7"/><path d="M8.6 20h9a3.8 3.8 0 0 0 .4-7.57 5.3 5.3 0 0 0-10.1 1.4A3.1 3.1 0 0 0 8.6 20z"/>',
+  fog: '<path d="M4 9h16M6 13h12M4 17h16"/>',
+  rain: '<path d="M7 15.5h10.2a4.1 4.1 0 0 0 .5-8.17A5.8 5.8 0 0 0 6.2 8 3.8 3.8 0 0 0 7 15.5z"/><path d="M8.5 18l-1 2.5M12.5 18l-1 2.5M16.5 18l-1 2.5"/>',
+  snow: '<path d="M7 15.5h10.2a4.1 4.1 0 0 0 .5-8.17A5.8 5.8 0 0 0 6.2 8 3.8 3.8 0 0 0 7 15.5z"/><path d="M8 19.5h.01M12 19.5h.01M16 19.5h.01"/>',
+  storm: '<path d="M7 15.5h10.2a4.1 4.1 0 0 0 .5-8.17A5.8 5.8 0 0 0 6.2 8 3.8 3.8 0 0 0 7 15.5z"/><path d="M12.5 16.5l-2 3h3l-2 3"/>',
+  // sunrise / sunset: half sun with rays on the horizon, arrow up or down above it
+  rise: '<path d="M3 19.5h18M7.5 19.5a4.5 4.5 0 0 1 9 0M5.9 17.3l-1.9-.7M8.3 14.2l-1.2-1.7M15.7 14.2l1.2-1.7M18.1 17.3l1.9-.7M12 3.5v6M9.5 6l2.5-2.5L14.5 6"/>',
+  set:  '<path d="M3 19.5h18M7.5 19.5a4.5 4.5 0 0 1 9 0M5.9 17.3l-1.9-.7M8.3 14.2l-1.2-1.7M15.7 14.2l1.2-1.7M18.1 17.3l1.9-.7M12 3.5v6M9.5 7l2.5 2.5L14.5 7"/>',
+  down: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+  up:   '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  flat: '<path d="M5 12h14"/>',
+};
+const icon = (name, size = 24) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[name]}</svg>`;
+function wxIcon(code, isDay) {   // WMO weather codes
+  if (code >= 95) return "storm";
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "snow";
+  if (code >= 51) return "rain";
+  if (code === 45 || code === 48) return "fog";
+  if (code === 3) return "cloud";
+  if (code === 1 || code === 2) return isDay ? "part" : "partNight";
+  return isDay ? "sun" : "moon";
+}
+function moonSvg(frac, size = 20) {
+  const r = 9, c = 12, waxing = frac <= .5, rx = Math.abs(Math.cos(2 * Math.PI * frac)) * r;
+  const lit = waxing
+    ? `M${c} ${c-r} A${r} ${r} 0 1 1 ${c} ${c+r} A${rx} ${r} 0 1 ${frac < .25 ? 0 : 1} ${c} ${c-r}Z`
+    : `M${c} ${c-r} A${r} ${r} 0 1 0 ${c} ${c+r} A${rx} ${r} 0 1 ${frac > .75 ? 1 : 0} ${c} ${c-r}Z`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--moon-dark)"/>`
+       + `<path d="${lit}" fill="var(--moon-lit)"/><circle cx="12" cy="12" r="9" fill="none" stroke="var(--line-strong)" stroke-width="1"/></svg>`;
+}
+
+/* =====================================================================
+   8. STATE + SCHEDULER
+   ===================================================================== */
+const STATE = { tide: null, waves: null, forecast: null, ok: {}, err: {} };
+const LOADERS = { tide: loadTide, waves: loadWaves, forecast: loadForecast };
+
+async function refresh(name) {
+  try {
+    STATE[name] = await LOADERS[name]();
+    STATE.ok[name] = Date.now();
+    delete STATE.err[name];
+  } catch (err) {
+    STATE.err[name] = String(err.message || err);
+    console.warn(`${name} failed:`, err);
+  }
+  renderAll();
+}
+async function cycle(name) {
+  await refresh(name);
+  setTimeout(() => cycle(name), STATE.err[name] ? SOURCES[name].retry : SOURCES[name].every);
+}
+
+/* =====================================================================
+   9. RENDERING
+   ===================================================================== */
+function renderAll() {
+  const t = now(), suns = sunDays(t);
+  document.documentElement.dataset.theme = params.get("theme") || (isDaylight(suns, t) ? "day" : "night");
+  renderStrip(t, suns);
+  renderWindSide(t);
+  renderWater(t);
+  renderTimeline();
+  renderDebug();
+}
+
+function renderStrip(t, suns) {
+  el("clock").textContent = hhmm(t);
+  el("date").textContent = fmt({ weekday: "long", day: "numeric", month: "long" }).format(t);
+  const today = suns.find(s => localDay(s.rise) === localDay(t)) || suns[1];
+  el("sunrise").innerHTML = `${icon("rise", 22)}<span>${hhmm(today.rise)}</span>`;
+  el("sunset").innerHTML  = `${icon("set", 22)}<span>${hhmm(today.set)}</span>`;
+  const m = moonInfo(t);
+  el("moon").innerHTML = `${moonSvg(m.frac)}<span>${m.illum}%</span><span class="label">${m.name}</span>`;
+
+  // Freshness: quiet "Updated hh:mm" unless something is out of date
+  const stale = Object.keys(SOURCES).filter(k => !STATE.ok[k] ? STATE.err[k] : Date.now() - STATE.ok[k] > SOURCES[k].staleAfter);
+  const up = el("updated");
+  const latest = Math.max(0, ...Object.values(STATE.ok));
+  up.classList.toggle("is-warn", stale.length > 0);
+  up.textContent = stale.length
+    ? `${stale.map(k => k[0].toUpperCase() + k.slice(1)).join(", ")} unavailable`
+    : latest ? `Updated ${hhmm(new Date(latest))}` : "Loading…";
+}
+
+function renderWindSide(t) {
+  const fc = STATE.forecast;
+  if (!fc || !el("fc-wind")) return;   // the forecast figures beside the rose are switched off for now
+  // average of the forecast hours either side of now
+  const near = fc.filter(f => Math.abs(f.t - t) <= HOUR);
+  if (!near.length) return;
+  const avg = (k) => near.reduce((a, f) => a + f[k], 0) / near.length;
+  const nearest = near.reduce((a, b) => Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a);
+  el("fc-wind").innerHTML = `${Math.round(avg("wind"))} <span class="unit">kn ${compass(nearest.dir)}</span>`;
+  el("fc-gust").innerHTML = `${Math.round(Math.max(...near.map(f => f.gust)))} <span class="unit">kn</span>`;
+}
+
+// Fit the cropped WeatherFile dial into whatever square space the tile has.
+function fitWidget() {
+  const wrap = el("dial-wrap"), S = Math.floor(Math.min(wrap.clientWidth, wrap.clientHeight));
+  if (!S) return;
+  el("wf-clip").style.width = el("wf-clip").style.height = S + "px";
+  // the compass card occupies x 50–250, y 61–261 of the 300px widget page
+  el("wf-frame").style.transform = `scale(${S / 200}) translate(-50px, -61px)`;
+}
+
+function renderWater(t) {
+  const tide = STATE.tide;
+  if (tide) {
+    const h = tideAt(tide, t);
+    const d = tideAt(tide, new Date(+t + 15 * MIN)) - tideAt(tide, new Date(+t - 15 * MIN));
+    const trend = Math.abs(d) < .01 ? ["flat", "Stand"] : d > 0 ? ["up", "Rising"] : ["down", "Falling"];
+    el("tide-height").innerHTML = h == null ? "–" : `${h.toFixed(2)}<span class="unit">m</span>`;
+    el("tide-trend").innerHTML = `${icon(trend[0], 14)}${trend[1]}`;
+    const next = tideEvents(tide).filter(e => e.t > t).slice(0, 2);
+    el("tide-next").innerHTML = next.map(e => `
+      <div class="row"><span class="k">${e.type === "HW" ? "High water" : "Low water"}</span>
+      <span class="v">${hhmm(e.t)} <span class="unit">· ${e.h.toFixed(1)} m</span></span></div>`).join("");
+  }
+  const w = STATE.waves;
+  if (w) {
+    const age = +t - w.t, old = age > SOURCES.waves.staleAfter;
+    el("sea-label").innerHTML = old ? `<span class="warn">Milford buoy · ${ago(age)} old</span>` : "Milford buoy";
+    el("sea").innerHTML = `
+      <div class="row"><span class="k">Waves</span><span class="v">${w.hs.toFixed(1)} m <span class="unit">· ${Math.round(w.tp)} s · ${compass(w.dir)}</span></span></div>
+      <div class="row"><span class="k">Sea temp</span><span class="v">${w.sst == null ? "–" : w.sst.toFixed(1) + "°"}</span></div>`;
+  }
+}
+
+/* ---------- Timeline: drawn at its real pixel size and redrawn on resize ---------- */
+function renderTimeline() {
+  const svg = el("timeline");
+  const W = svg.clientWidth, H = svg.clientHeight;
+  if (!W || !H) return;
+  const T = now(), suns = sunDays(T);
+  const t0 = new Date(+T - CONFIG.windowBefore * HOUR), t1 = new Date(+T + CONFIG.windowAfter * HOUR);
+  const gutter = 48, right = 6;
+  const x = (t) => gutter + (t - t0) / (t1 - t0) * (W - gutter - right);
+  const inView = (cx) => cx > gutter + 20 && cx < W - 12;
+
+  // Lane heights (design values for ~262px, scaled to the space available)
+  const base = { sky: 30, g1: 4, wind: 100, g2: 8, tide: 80, g3: 6, rain: 14, g4: 4, axis: 16 };
+  const k = H / Object.values(base).reduce((a, b) => a + b, 0);
+  let y = 0; const lane = {};
+  for (const [key, h] of Object.entries(base)) { lane[key] = { top: y, h: h * k, bot: y + h * k }; y += h * k; }
+  const laneLabel = (name, unit, ly) =>
+    `<text x="0" y="${ly}"><tspan class="t-lane">${name}</tspan>${unit ? `<tspan class="t-tick" dx="4">${unit}</tspan>` : ""}</text>`;
+  const path = (p) => p.map(([a, b], i) => `${i ? "L" : "M"}${a.toFixed(1)},${b.toFixed(1)}`).join("");
+
+  let s = "", front = "";   // s = background and plots; front = labels and dots drawn over the now line
+  s += `<clipPath id="tl-clip"><rect x="${gutter}" y="0" width="${W - gutter - right}" height="${H}"/></clipPath>`;
+
+  // Day/night shading behind everything
+  const band = (a, b, fill) => {
+    a = Math.max(+t0, +a); b = Math.min(+t1, +b);
+    if (b > a) s += `<rect x="${x(a)}" y="0" width="${x(b) - x(a)}" height="${lane.rain.bot}" fill="${fill}" rx="4"/>`;
+  };
+  suns.forEach((d, i) => { band(d.rise, d.set, "var(--day)"); if (suns[i + 1]) band(d.set, suns[i + 1].rise, "var(--night)"); });
+
+  // 3-hourly slots on local clock hours; midnight separators
+  const slots = [];
+  for (let t = Math.ceil(+t0 / HOUR) * HOUR; t <= +t1; t += HOUR) if (localHour(new Date(t)) % 3 === 0) slots.push(new Date(t));
+  slots.filter(t => localHour(t) === 0).forEach(t => {
+    s += `<line x1="${x(t)}" x2="${x(t)}" y1="0" y2="${lane.rain.bot}" stroke="var(--line-strong)" stroke-width="1"/>`;
+  });
+
+  const fc = STATE.forecast || [];
+  const fcAt = (t) => fc.length ? fc.reduce((a, b) => Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a) : null;
+  const nx = x(T);
+
+  // ---- Sky: icon + temperature side by side
+  s += laneLabel("Sky", "", lane.sky.top + 19);
+  if (fc.length) slots.forEach(t => {
+    const f = fcAt(t), cx = x(t);
+    if (!inView(cx)) return;
+    s += `<g transform="translate(${cx - 23} ${lane.sky.top + 4})" color="var(--ink-2)">${icon(wxIcon(f.code, isDaylight(suns, t)), 21)}</g>`;
+    s += `<text class="t-temp" x="${cx + 1}" y="${lane.sky.top + 19}">${Math.round(f.temp)}°</text>`;
+  });
+
+  // ---- Wind: gust band + mean wind line + direction arrows (pointing downwind)
+  s += laneLabel("Wind", "kn", lane.wind.top + 13);
+  const fw = fc.filter(f => f.t >= +t0 - HOUR && f.t <= +t1 + HOUR);
+  if (fw.length) {
+    const maxG = Math.max(...fw.map(f => f.gust));
+    const top = Math.max(30, Math.ceil((maxG + 2) / 10) * 10);         // 30, 40, 50 … kn
+    const plotTop = lane.wind.top + 18, plotBot = lane.wind.bot;
+    const wy = (v) => plotBot - clamp(v / top, 0, 1) * (plotBot - plotTop);
+    const step = top > 40 ? 20 : 10;
+    for (let v = step; v <= top; v += step) {
+      s += `<line x1="${gutter}" x2="${W - right}" y1="${wy(v)}" y2="${wy(v)}" stroke="var(--line)" stroke-width="1"/>`;
+      if (wy(v) - lane.wind.top > 26) s += `<text class="t-tick" x="${gutter - 8}" y="${wy(v) + 4}" text-anchor="end">${v}</text>`;
+    }
+    s += `<line x1="${gutter}" x2="${W - right}" y1="${plotBot}" y2="${plotBot}" stroke="var(--line-strong)" stroke-width="1"/>`;
+    const g = fw.map(f => [x(f.t), wy(f.gust)]), m = fw.map(f => [x(f.t), wy(f.wind)]);
+    s += `<g clip-path="url(#tl-clip)"><path d="${path(g)}${path(m.slice().reverse()).replace("M", "L")}Z" fill="var(--gust)"/>`;
+    s += `<path d="${path(m)}" fill="none" stroke="var(--wind)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></g>`;
+    const vis = fw.filter(f => x(f.t) > gutter + 40 && x(f.t) < W - 60);
+    if (vis.length) {
+      const peak = vis.reduce((a, b) => b.gust > a.gust ? b : a);
+      front += `<text class="t-tick halo" x="${x(peak.t)}" y="${wy(peak.gust) - 4}" text-anchor="middle">gusts ${Math.round(peak.gust)}</text>`;
+    }
+    slots.forEach(t => {
+      const f = fcAt(t), cx = x(t);
+      if (!inView(cx)) return;
+      s += `<g transform="translate(${cx} ${lane.wind.top + 8}) rotate(${f.dir + 180}) scale(1.25)"><path d="M0,-6.5 L4.5,4.5 L0,2 L-4.5,4.5 Z" fill="var(--ink-2)"/></g>`;
+    });
+    const nowWind = fc.filter(f => Math.abs(f.t - T) <= HOUR);
+    if (nowWind.length) {
+      const wv = nowWind.reduce((a, f) => a + f.wind, 0) / nowWind.length;
+      front += `<circle cx="${nx}" cy="${wy(wv)}" r="4.5" fill="var(--now)" stroke="var(--card-solid)" stroke-width="2"/>`;
+    }
+  } else {
+    s += `<text class="t-none" x="${gutter + 8}" y="${lane.wind.top + 40}">${STATE.err.forecast ? "Forecast unavailable — retrying" : "Loading forecast…"}</text>`;
+  }
+
+  // ---- Tide: curve + HW/LW labels (labels get their own margins inside the lane)
+  s += laneLabel("Tide", "m", lane.tide.top + 13);
+  const tide = STATE.tide || [];
+  const tw = tide.filter(p => p.t >= +t0 - HOUR && p.t <= +t1 + HOUR);
+  if (tw.length > 2) {
+    const hMin = Math.min(...tw.map(p => p.h)), hMax = Math.max(...tw.map(p => p.h));
+    const tTop = lane.tide.top + 15, tBot = lane.tide.bot - 14;
+    const ty = (h) => tBot - (h - hMin) / Math.max(.1, hMax - hMin) * (tBot - tTop);
+    const tp = tw.map(p => [x(p.t), ty(p.h)]);
+    s += `<g clip-path="url(#tl-clip)"><path d="${path(tp)}L${tp[tp.length - 1][0]},${lane.tide.bot}L${tp[0][0]},${lane.tide.bot}Z" fill="var(--sea-fill)"/>`;
+    s += `<path d="${path(tp)}" fill="none" stroke="var(--sea)" stroke-width="2" stroke-linejoin="round"/></g>`;
+    tideEvents(tide).filter(e => e.t > t0 && e.t < t1).forEach(e => {
+      const ex = clamp(x(e.t), gutter + 40, W - 44), ey = ty(e.h);
+      const yy = e.type === "HW" ? ey - 5 : ey + 13;
+      front += `<text class="halo" x="${ex}" y="${yy}" text-anchor="middle"><tspan class="t-event">${e.type === "HW" ? "High" : "Low"} ${hhmm(e.t)}</tspan><tspan class="t-event-h"> ${e.h.toFixed(1)}</tspan></text>`;
+    });
+    const th = tideAt(tide, T);
+    if (th != null) front += `<circle cx="${nx}" cy="${ty(th)}" r="4.5" fill="var(--now)" stroke="var(--card-solid)" stroke-width="2"/>`;
+  } else {
+    s += `<text class="t-none" x="${gutter + 8}" y="${lane.tide.top + 40}">${STATE.err.tide ? "Tide unavailable — retrying" : "Loading tide…"}</text>`;
+  }
+
+  // ---- Rain: hourly bars
+  s += laneLabel("Rain", "", lane.rain.top + 11);
+  const rw = fc.filter(f => f.t >= t0 && f.t < t1);
+  if (rw.some(f => f.rain >= 0.1)) {
+    const rTop = Math.max(1, Math.ceil(Math.max(...rw.map(f => f.rain))));
+    const bw = Math.max(2, (x(new Date(+t0 + HOUR)) - x(t0)) * .7);
+    rw.filter(f => f.rain >= 0.1).forEach(f => {
+      const hgt = Math.max(2, f.rain / rTop * lane.rain.h);
+      s += `<rect x="${x(new Date(+f.t + HOUR / 2)) - bw / 2}" y="${lane.rain.bot - hgt}" width="${bw}" height="${hgt}" rx="1.5" fill="var(--rain)"/>`;
+    });
+  } else if (rw.length) {
+    s += `<text class="t-none" x="${gutter + 8}" y="${lane.rain.top + 11}">No rain expected</text>`;
+  }
+  s += `<line x1="${gutter}" x2="${W - right}" y1="${lane.rain.bot}" y2="${lane.rain.bot}" stroke="var(--line-strong)" stroke-width="1"/>`;
+
+  // ---- Now line, then labels and dots on top of it
+  s += `<line x1="${nx}" x2="${nx}" y1="${lane.wind.top}" y2="${lane.rain.bot}" stroke="var(--now)" stroke-width="1.5"/>`;
+  s += front;
+
+  // ---- Time axis
+  const ay = lane.axis.bot - 2;
+  slots.forEach(t => {
+    const cx = x(t);
+    if (cx < gutter + 6 || cx > W - 8 || Math.abs(cx - nx) < 36) return;
+    s += localHour(t) === 0
+      ? `<text class="t-day" x="${cx}" y="${ay}" text-anchor="middle">${weekday(t)}</text>`
+      : `<text class="t-hour" x="${cx}" y="${ay}" text-anchor="middle">${String(localHour(t)).padStart(2, "0")}</text>`;
+  });
+  s += `<text class="t-now" x="${nx}" y="${ay}" text-anchor="middle">Now</text>`;
+
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = s;
+}
+
+function renderDebug() {
+  if (!params.has("debug")) return;
+  const d = el("debug"); d.hidden = false;
+  const line = (k) => `${k.padEnd(9)}${STATE.ok[k] ? "ok " + hhmm(new Date(STATE.ok[k])) : "—"}${STATE.err[k] ? "  ERR " + STATE.err[k] : ""}`;
+  d.textContent = `screen   ${innerWidth}×${innerHeight} @${devicePixelRatio.toFixed(2)}x\n`
+    + Object.keys(SOURCES).map(line).join("\n")
+    + (STATE.forecast?.model ? `\nmodel    ${STATE.forecast.model}` : "");
+}
+
+/* =====================================================================
+   10. WEBCAM — plays the HLS stream; restarts itself if it errors or freezes
+   ===================================================================== */
+let hls = null, retryTimer = null, lastFrameTime = -1, frozenChecks = 0;
+function startWebcam() {
+  const video = el("cam-video"), note = el("cam-note");
+  if (hls) { hls.destroy(); hls = null; }
+  clearTimeout(retryTimer);
+  note.hidden = true;
+  const fail = (why) => { console.warn("Webcam:", why); note.hidden = false; };
+  if (window.Hls && Hls.isSupported()) {
+    hls = new Hls({ liveSyncDurationCount: 3, maxBufferLength: 30 });
+    hls.loadSource(CONFIG.webcam);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+    // Standard hls.js recovery: retry the network, repair the decoder, or start again in a minute.
+    hls.on(Hls.Events.ERROR, (_, data) => {
+      if (!data.fatal) return;
+      console.warn("Webcam:", data.details);
+      if (data.type === Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+      else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+      else retryTimer = setTimeout(startWebcam, MIN);
+    });
+  } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = CONFIG.webcam;
+    video.play().catch(() => {});
+  } else {
+    fail("this browser can't play the stream");
+  }
+}
+// Every 30 s: if the picture hasn't moved, say so; after 2 minutes frozen, restart the stream.
+setInterval(() => {
+  const v = el("cam-video");
+  if (v.currentTime === lastFrameTime) {
+    el("cam-note").hidden = false;
+    if (++frozenChecks >= 4) { frozenChecks = 0; startWebcam(); }
+  } else { frozenChecks = 0; lastFrameTime = v.currentTime; el("cam-note").hidden = true; }
+}, 30e3);
+
+/* =====================================================================
+   11. START
+   ===================================================================== */
+renderAll();
+fitWidget();
+new ResizeObserver(() => { fitWidget(); renderTimeline(); }).observe(document.body);
+startWebcam();
+Object.keys(SOURCES).forEach(cycle);
+setInterval(renderAll, 30e3);   // clock, "now" line, theme switch at sunrise/sunset
+
+// Reload the whole page once a night (03:30) — keeps a kiosk tablet fresh for weeks.
+const bootedAt = Date.now();
+setInterval(() => {
+  const t = new Date();
+  if (Date.now() - bootedAt > HOUR && localHour(t) === 3 && localMinute(t) === 30) location.reload();
+}, MIN);
+</script>
+</body>
+</html>
