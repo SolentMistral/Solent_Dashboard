@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- The page has its own day/night themes: stop Android / Chrome "auto dark mode" from recolouring it -->
+<meta name="color-scheme" content="light dark">
 <title>Solent Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +19,7 @@
    sunset (add ?theme=day or ?theme=night to the address to force one).
    ===================================================================== */
 :root {
+  color-scheme: light dark;   /* see the meta tag above: no forced dark mode */
   --pad: 14px;            /* outer margin */
   --gap: 12px;            /* space between tiles */
   --strip-h: 38px;        /* top strip height */
@@ -28,7 +31,7 @@
   --ink: #0F1B2D; --ink-2: #4A5463; --muted: #8B919A;
   --sea: #1D6FA5; --sea-fill: rgba(29,111,165,.12);
   --wind: #0F1B2D; --gust: rgba(15,27,45,.11);
-  --rain: #5B93C9; --now: #E4572E; --warn: #B45309;
+  --rain: #5B93C9; --now: #E4572E; --now-text: #C9431C; --warn: #B45309;
   --night: rgba(15,27,45,.045); --day: transparent;
   --moon-dark: #3A4352; --moon-lit: #F1E6BE;
   --cam-dim: 1; --wf-filter: saturate(.45);
@@ -38,7 +41,7 @@
   --ink: #C7CFD8; --ink-2: #8792A0; --muted: #5C6672;
   --sea: #4D8FC0; --sea-fill: rgba(77,143,192,.14);
   --wind: #C7CFD8; --gust: rgba(199,207,216,.11);
-  --rain: #3F73A3; --now: #C9603F; --warn: #D29A4A;
+  --rain: #3F73A3; --now: #C9603F; --now-text: #C9603F; --warn: #D29A4A;
   --night: transparent; --day: rgba(255,255,255,.03);
   --moon-dark: #222A33; --moon-lit: #C7CFD8;
   --cam-dim: .8; --wf-filter: saturate(.4) brightness(.62);
@@ -92,7 +95,11 @@ a { color: inherit; }
 .chip svg { width: 22px; height: 22px; color: var(--ink-2); flex: none; }
 .chip .label { font-size: 13px; }
 .updated { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); white-space: nowrap; }
-.updated::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sea); opacity: .8; }
+.updated { cursor: pointer; }
+.updated::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--now); }
+.credits-pop { position: fixed; top: 52px; right: 14px; z-index: 8; max-width: 330px; padding: 8px 10px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--line-strong); font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+.credits-pop a { text-decoration: none; }
 .updated.is-warn { color: var(--warn); font-weight: 600; }
 .updated.is-warn::before { background: var(--warn); }
 
@@ -114,18 +121,19 @@ a { color: inherit; }
 
 /* ---------- Tide + sea ---------- */
 .water { grid-area: water; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 5px; }
-.tide-now { display: flex; align-items: baseline; gap: 10px; }
-.tide-now .big { font-size: clamp(34px, 19cqi, 64px); font-weight: var(--hero-weight); letter-spacing: -.02em; line-height: .95; }
-.tide-now .big .unit { font-size: .42em; letter-spacing: 0; margin-left: 2px; }
-.trend { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--sea); white-space: nowrap; }
-.trend svg { width: 14px; height: 14px; }
+.tide-state { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.tide-state .state { display: inline-flex; align-items: center; gap: 4px; font-size: clamp(22px, 9cqi, 30px); font-weight: 600; color: var(--now-text); }
+.tide-state .state svg { width: .85em; height: .85em; stroke-width: 2.2; }
+.tide-state .now-h { font-size: 15px; font-weight: 500; color: var(--ink-2); }
+.tide-next .label { margin-bottom: 1px; }
+.tide-next-line { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+.tide-next-line .big { font-size: clamp(36px, 16cqi, 56px); font-weight: var(--hero-weight); letter-spacing: -.02em; line-height: .95; }
+.tide-next-line .meta { font-size: 14px; font-weight: 500; color: var(--ink-2); }
 .rows { display: grid; gap: 4px; }
 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14.5px; white-space: nowrap; }
 .row .k { color: var(--ink-2); }
 .row .v { font-weight: 600; font-variant-numeric: tabular-nums; }
 .row .v .unit { font-weight: 500; }
-.credits { margin-top: auto; font-size: 10px; line-height: 1.35; color: var(--muted); }
-.credits a { text-decoration: none; white-space: nowrap; }
 .divider { height: 1px; background: var(--line); margin: 2px 0; flex: none; }
 
 /* ---------- Timeline ---------- */
@@ -138,6 +146,7 @@ a { color: inherit; }
 .t-temp  { font: 600 12.5px var(--font); fill: var(--ink); }
 .t-event { font: 600 11.5px var(--font); fill: var(--ink); }
 .t-event-h { font: 500 11.5px var(--font); fill: var(--ink-2); }
+.t-event.next, .t-event-h.next { fill: var(--now-text); }
 .t-now   { font: 700 11.5px var(--font); fill: var(--now); }
 .t-none  { font: 500 11.5px var(--font); fill: var(--muted); }
 .halo    { paint-order: stroke; stroke: var(--card-solid); stroke-width: 3.5px; stroke-linejoin: round; }
@@ -178,17 +187,24 @@ a { color: inherit; }
   <!-- 4 · Tide now + sea state -->
   <section class="card water">
     <div class="card-head"><span class="title">Tide</span><span class="label">Lymington</span></div>
-    <div class="tide-now"><div class="big" id="tide-height">–</div><div class="trend" id="tide-trend"></div></div>
-    <div class="rows" id="tide-next"></div>
+    <div class="tide-state"><span class="state" id="tide-state">–</span><span class="now-h" id="tide-height"></span></div>
+    <div class="tide-next">
+      <div class="label" id="tide-next-label">Next</div>
+      <div class="tide-next-line"><span class="big" id="tide-next-time">–</span><span class="meta" id="tide-next-meta"></span></div>
+    </div>
+    <div class="rows" id="tide-after"></div>
     <div class="divider"></div>
     <div class="card-head"><span class="title">Sea</span><span class="label" id="sea-label">Milford buoy</span></div>
     <div class="rows" id="sea"></div>
-    <div class="credits">Data: <a href="https://channelcoast.org">Regional Coastal Monitoring Programme</a>, <a href="https://open-meteo.com">Open-Meteo</a>, <a href="https://weatherfile.com">WeatherFile</a></div>
   </section>
 
   <!-- 5 · Shared timeline: sky, wind, tide, rain on one time axis -->
   <section class="card timeline"><svg id="timeline" aria-label="Forecast timeline"></svg></section>
 </div>
+<!-- Data credits (shown when "Updated" is tapped). Tide and wave data: Regional Coastal Monitoring Programme,
+     channelcoast.org, Open Government Licence (real-time, not quality-controlled). Forecast: Open-Meteo.com (CC BY 4.0).
+     Live wind: WeatherFile.com widget. Webcam: Royal Solent Yacht Club. -->
+<div class="credits-pop" id="credits" hidden>Tide &amp; waves: <a href="https://channelcoast.org">Regional Coastal Monitoring Programme</a> (OGL, real-time, not quality-controlled) · Forecast: <a href="https://open-meteo.com">Open-Meteo</a> · Wind: <a href="https://weatherfile.com">WeatherFile</a> · Webcam: Royal Solent YC</div>
 <div class="debug" id="debug" hidden></div>
 
 <script>
@@ -232,6 +248,7 @@ const localDay = (d) => fmt({ year: "numeric", month: "2-digit", day: "2-digit" 
 const weekday = (d) => fmt({ weekday: "short" }).format(d);
 const COMPASS = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
 const compass = (deg) => COMPASS[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16];
+const countdown = (ms) => { const m = Math.max(0, Math.round(ms / MIN)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`; };
 const ago = (ms) => ms < HOUR ? `${Math.round(ms / MIN)} min` : `${Math.round(ms / HOUR)} h`;
 
 // fetch with a time limit, so a hung request can never freeze a panel
@@ -516,12 +533,18 @@ function renderWater(t) {
     const h = tideAt(tide, t);
     const d = tideAt(tide, new Date(+t + 15 * MIN)) - tideAt(tide, new Date(+t - 15 * MIN));
     const trend = Math.abs(d) < .01 ? ["flat", "Stand"] : d > 0 ? ["up", "Rising"] : ["down", "Falling"];
-    el("tide-height").innerHTML = h == null ? "–" : `${h.toFixed(2)}<span class="unit">m</span>`;
-    el("tide-trend").innerHTML = `${icon(trend[0], 14)}${trend[1]}`;
-    const next = tideEvents(tide).filter(e => e.t > t).slice(0, 2);
-    el("tide-next").innerHTML = next.map(e => `
-      <div class="row"><span class="k">${e.type === "HW" ? "High water" : "Low water"}</span>
-      <span class="v">${hhmm(e.t)} <span class="unit">· ${e.h.toFixed(1)} m</span></span></div>`).join("");
+    // what matters most: rising or falling, and when the next high/low is
+    el("tide-state").innerHTML = `${icon(trend[0], 24)}${trend[1]}`;
+    el("tide-height").textContent = h == null ? "" : `${h.toFixed(2)} m now`;
+    const [n1, n2] = tideEvents(tide).filter(e => e.t > t);
+    const name = (e) => e.type === "HW" ? "High water" : "Low water";
+    if (n1) {
+      el("tide-next-label").textContent = name(n1);
+      el("tide-next-time").textContent = hhmm(n1.t);
+      el("tide-next-meta").textContent = `${n1.h.toFixed(1)} m · in ${countdown(n1.t - t)}`;
+    }
+    el("tide-after").innerHTML = n2 ? `<div class="row"><span class="k">then ${name(n2)}</span>
+      <span class="v">${hhmm(n2.t)} <span class="unit">· ${n2.h.toFixed(1)} m</span></span></div>` : "";
   }
   const w = STATE.waves;
   if (w) {
@@ -603,7 +626,9 @@ function renderTimeline() {
     const vis = fw.filter(f => x(f.t) > gutter + 40 && x(f.t) < W - 60);
     if (vis.length) {
       const peak = vis.reduce((a, b) => b.gust > a.gust ? b : a);
-      front += `<text class="t-tick halo" x="${x(peak.t)}" y="${wy(peak.gust) - 4}" text-anchor="middle">gusts ${Math.round(peak.gust)}</text>`;
+      // label sits beside the peak (not above it) so it can't clash with the direction arrows
+      const px = x(peak.t), right = px < W - 90;
+      front += `<text class="t-tick halo" x="${right ? px + 7 : px - 7}" y="${wy(peak.gust) + 4}" text-anchor="${right ? "start" : "end"}">gusts ${Math.round(peak.gust)}</text>`;
     }
     slots.forEach(t => {
       const f = fcAt(t), cx = x(t);
@@ -630,10 +655,13 @@ function renderTimeline() {
     const tp = tw.map(p => [x(p.t), ty(p.h)]);
     s += `<g clip-path="url(#tl-clip)"><path d="${path(tp)}L${tp[tp.length - 1][0]},${lane.tide.bot}L${tp[0][0]},${lane.tide.bot}Z" fill="var(--sea-fill)"/>`;
     s += `<path d="${path(tp)}" fill="none" stroke="var(--sea)" stroke-width="2" stroke-linejoin="round"/></g>`;
-    tideEvents(tide).filter(e => e.t > t0 && e.t < t1).forEach(e => {
+    const events = tideEvents(tide), nextEvent = events.find(e => e.t > T);
+    events.filter(e => e.t > t0 && e.t < t1).forEach(e => {
       const ex = clamp(x(e.t), gutter + 40, W - 44), ey = ty(e.h);
-      const yy = e.type === "HW" ? ey - 5 : ey + 13;
-      front += `<text class="halo" x="${ex}" y="${yy}" text-anchor="middle"><tspan class="t-event">${e.type === "HW" ? "High" : "Low"} ${hhmm(e.t)}</tspan><tspan class="t-event-h"> ${e.h.toFixed(1)}</tspan></text>`;
+      const yy = e.type === "HW" ? ey - 7 : ey + 15;
+      const cls = e === nextEvent ? " next" : "";
+      if (cls) front += `<circle cx="${x(e.t)}" cy="${ey}" r="4" fill="var(--card-solid)" stroke="var(--now)" stroke-width="2"/>`;
+      front += `<text class="halo" x="${ex}" y="${yy}" text-anchor="middle"><tspan class="t-event${cls}">${e.type === "HW" ? "High" : "Low"} ${hhmm(e.t)}</tspan><tspan class="t-event-h${cls}"> ${e.h.toFixed(1)}</tspan></text>`;
     });
     const th = tideAt(tide, T);
     if (th != null) front += `<circle cx="${nx}" cy="${ty(th)}" r="4.5" fill="var(--now)" stroke="var(--card-solid)" stroke-width="2"/>`;
@@ -728,6 +756,11 @@ setInterval(() => {
    ===================================================================== */
 renderAll();
 fitWidget();
+let creditsTimer;
+el("updated").addEventListener("click", () => {
+  el("credits").hidden = !el("credits").hidden;
+  clearTimeout(creditsTimer); creditsTimer = setTimeout(() => { el("credits").hidden = true; }, 8000);
+});
 new ResizeObserver(() => { fitWidget(); renderTimeline(); }).observe(document.body);
 startWebcam();
 Object.keys(SOURCES).forEach(cycle);
