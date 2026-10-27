@@ -382,6 +382,8 @@ const now = () => FIXED_NOW || new Date();
 const el = (id) => document.getElementById(id);
 // Phone layout test — must match the "Phone" @media rule in section 2b
 const PHONE = matchMedia("(max-width: 559px), (max-height: 479px)");
+// Portrait tablet test — must match the "Portrait tablet" @media rule in section 2b
+const PORTRAIT = matchMedia("(orientation: portrait) and (min-width: 560px) and (min-height: 480px)");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fmt = (opts) => new Intl.DateTimeFormat("en-GB", { timeZone: CONFIG.timeZone, ...opts });
 const hhmm = (d) => fmt({ hour: "2-digit", minute: "2-digit" }).format(d);
@@ -695,6 +697,25 @@ function fitWidgets() {
   for (const [name, c] of Object.entries(CROPS)) {
     Object.assign(el(name + "-clip").style, { width: Math.floor(c.w * k) + "px", height: Math.floor(c.h * k) + "px" });
     Object.assign(el(name + "-frame").style, { width: c.frameW + "px", height: c.frameH + "px", transform: `scale(${k}) translate(${-c.x}px, ${-c.y}px)` });
+  }
+}
+
+/* Bigger screens (a laptop, a desktop monitor, a large tablet): rather than spreading the
+   tablet-sized panels across a big screen, lay the page out at the kitchen tablet's size
+   (1006×601, or 601×1006 in portrait) and scale the whole thing up to fill the screen, so
+   every part grows together. Screens the size of the tablet or smaller, and phones, aren't
+   scaled. Note: the WeatherFile dials are small fixed-size images, so they soften a little
+   when scaled up; their numbers stay sharp. */
+const DESIGN = { landscape: [1006, 601], portrait: [601, 1006] };
+function fitScale() {
+  const app = document.querySelector(".app");
+  const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+  const [dw, dh] = DESIGN[PORTRAIT.matches ? "portrait" : "landscape"];
+  const s = PHONE.matches ? 1 : Math.max(1, Math.min(vw / dw, vh / dh));
+  if (s > 1.02) {
+    Object.assign(app.style, { width: vw / s + "px", height: vh / s + "px", transform: `scale(${s})`, transformOrigin: "0 0" });
+  } else {
+    Object.assign(app.style, { width: "", height: "", transform: "", transformOrigin: "" });
   }
 }
 
@@ -1066,6 +1087,7 @@ setInterval(() => {
 /* =====================================================================
    11. START
    ===================================================================== */
+fitScale();
 renderAll();
 fitWidgets();
 let creditsTimer;
@@ -1073,7 +1095,7 @@ el("updated").addEventListener("click", () => {
   el("credits").hidden = !el("credits").hidden;
   clearTimeout(creditsTimer); creditsTimer = setTimeout(() => { el("credits").hidden = true; }, 8000);
 });
-new ResizeObserver(() => { fitWidgets(); renderTimeline(); }).observe(document.body);
+new ResizeObserver(() => { fitScale(); fitWidgets(); renderTimeline(); }).observe(document.body);
 startWebcam();
 Object.keys(SOURCES).forEach(cycle);
 setInterval(renderAll, 30e3);   // clock, "now" line, theme switch at sunrise/sunset
