@@ -34,7 +34,7 @@
   --rain: #5B93C9; --now: #E4572E; --now-text: #C9431C; --warn: #B45309;
   --night: rgba(15,27,45,.045); --day: transparent;
   --moon-dark: #3A4352; --moon-lit: #F1E6BE;
-  --cam-dim: 1; --wf-filter: saturate(.45);
+  --cam-dim: 1;
 }
 [data-theme="night"] {
   --bg: #0A0D11;  --card: transparent; --card-solid: #0A0D11; --line: #1D242C; --line-strong: #2A333D;
@@ -44,7 +44,7 @@
   --rain: #3F73A3; --now: #C9603F; --now-text: #C9603F; --warn: #D29A4A;
   --night: transparent; --day: rgba(255,255,255,.03);
   --moon-dark: #222A33; --moon-lit: #C7CFD8;
-  --cam-dim: .8; --wf-filter: saturate(.4) brightness(.62);
+  --cam-dim: .8;
 }
 
 /* =====================================================================
@@ -66,8 +66,8 @@ a { color: inherit; }
   gap: var(--gap);
   /* tiles get 45% of the height, the timeline 55% */
   grid-template-rows: var(--strip-h) minmax(0, 45fr) minmax(0, 55fr);
-  /* webcam 16:9 · wind rose square (+16px for its left margin) · tide/sea takes the rest */
-  grid-template-columns: min(calc(var(--rows-h) * .45 * 16 / 9), 46%) calc(var(--rows-h) * .45 + 16px) minmax(0, 1fr);
+  /* webcam takes what's left · wind cluster (direction over Avg/Max) · tide/sea column */
+  grid-template-columns: minmax(0, 1fr) 262px clamp(280px, 30%, 340px);
   grid-template-areas:
     "strip strip strip"
     "cam   wind  water"
@@ -110,34 +110,52 @@ a { color: inherit; }
   color: #9aa3ad; font-size: 14px; padding: 20px; }
 
 /* ---------- Wind (WeatherFile dial + forecast for comparison) ---------- */
-.wind { grid-area: wind; padding: 0 0 0 16px; }
-.dial-wrap { width: 100%; height: 100%; display: grid; place-items: center; }
-/* The widget is loaded at its natural 300px size, cropped to the dial and scaled to fit (see fitWidget) */
-.wf-clip { position: relative; overflow: hidden; border-radius: 50%; }
-.wf-clip iframe { position: absolute; left: 0; top: 0; width: 300px; height: 300px; border: 0;
-  transform-origin: 0 0; pointer-events: none; filter: var(--wf-filter); }
+.wind { grid-area: wind; padding: 0 0 0 16px; display: grid; place-items: center; }
+.cluster { display: grid; justify-items: center; gap: 4px; }
+.wind-src { margin-top: 2px; font-size: 13px; color: var(--ink-2); text-align: center; }
+/* WeatherFile widgets are cropped to just the dial / gauges (their header bar is trimmed off). See fitWidgets(). */
+.wf-clip { position: relative; overflow: hidden; }
+.wf-clip iframe { position: absolute; left: 0; top: 0; border: 0; transform-origin: 0 0; pointer-events: none; }
+
 .stat .value { font-size: 18px; font-weight: 600; margin-top: 2px; white-space: nowrap; }
 .stat .value .unit { font-size: 14px; }
 
 /* ---------- Tide + sea ---------- */
-.water { grid-area: water; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 5px; }
-.tide-state { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-.tide-state .state { display: inline-flex; align-items: center; gap: 4px; font-size: clamp(22px, 9cqi, 30px); font-weight: 600; color: var(--now-text); }
-.tide-state .state svg { width: .85em; height: .85em; stroke-width: 2.2; }
-.tide-state .now-h { font-size: 15px; font-weight: 500; color: var(--ink-2); }
-.tide-next .label { margin-bottom: 1px; }
-.tide-next-line { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
-.tide-next-line .big { font-size: clamp(36px, 16cqi, 56px); font-weight: var(--hero-weight); letter-spacing: -.02em; line-height: .95; }
-.tide-next-line .meta { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+.water { grid-area: water; padding: 0 0 0 18px; display: grid; grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto; column-gap: 16px; align-items: center; }
+/* the tide clock: as big as the panel allows */
+.tide-dial { width: min(calc(100cqh - 26px), 54cqi); aspect-ratio: 1; display: block; }
+.tide-caption { grid-column: 1; text-align: center; font-size: 13px; color: var(--ink-2); padding-bottom: 8px; }
+.dial-lab { font: 700 16px var(--font); letter-spacing: 1.5px; paint-order: stroke; stroke: var(--card-solid); stroke-width: 4px; stroke-linejoin: round; }
+.tide-read { grid-row: 1 / span 2; grid-column: 2; align-self: stretch; display: flex; flex-direction: column;
+  justify-content: space-between; padding: 8px 0 8px; min-width: 0; white-space: nowrap; }
+.tide-read .grp { display: grid; gap: 2px; }
+.tide-read .state { display: inline-flex; align-items: center; gap: 3px; font-size: 22px; font-weight: 600; color: var(--now-text); }
+.tide-read .state svg { width: .8em; height: .8em; stroke-width: 2.4; }
+.tide-read .now-h { font-size: 13px; color: var(--ink-2); }
+.tide-read .label { font-size: 14.5px; font-weight: 600; color: var(--ink-2); }
+.tide-read .big { font-size: clamp(34px, 13cqi, 48px); font-weight: var(--hero-weight); letter-spacing: -.02em; line-height: 1; }
+.tide-read .meta { font-size: 13px; color: var(--ink-2); }
+.tide-read .then { padding-top: 8px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.tide-read .then b { color: var(--ink); font-weight: 600; }
 .rows { display: grid; gap: 4px; }
 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14.5px; white-space: nowrap; }
 .row .k { color: var(--ink-2); }
 .row .v { font-weight: 600; font-variant-numeric: tabular-nums; }
 .row .v .unit { font-weight: 500; }
-.divider { height: 1px; background: var(--line); margin: 2px 0; flex: none; }
 
 /* ---------- Timeline ---------- */
-.timeline { grid-area: time; padding: 10px 0 0 0; }
+.timeline { grid-area: time; padding: 10px 0 0 0; display: grid; grid-template-columns: minmax(0, 1fr) 150px; }
+.conditions { border-left: 1px solid var(--line); margin-left: 8px; padding: 4px 0 18px; display: flex; flex-direction: column;
+  justify-content: space-evenly; align-items: center; text-align: center; min-height: 0; }
+.cond { display: grid; justify-items: center; gap: 1px; }
+.cond .c-val { display: flex; align-items: baseline; gap: 5px; }
+.cond .num { font-size: 22.8px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; line-height: 1.15; }   /* matches the WeatherFile value widget */
+.cond .u { font-size: 16px; font-weight: 500; color: var(--ink-2); }
+.cond .c-sub { font-size: 13px; color: var(--ink-2); }
+.cond .c-lab { font-size: 12.5px; font-weight: 500; color: var(--muted); }
+.cond .c-lab.warn { color: var(--warn); }
+.cond .arrow { width: 15px; height: 15px; align-self: center; margin-left: 2px; }
 .timeline svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .t-lane  { font: 600 12px var(--font); fill: var(--ink-2); }
 .t-tick  { font: 500 11px var(--font); fill: var(--muted); font-variant-numeric: tabular-nums; }
@@ -176,30 +194,37 @@ a { color: inherit; }
     <div class="cam-note" id="cam-note" hidden>Webcam unavailable — retrying</div>
   </section>
 
-  <!-- 3 · Wind: live WeatherFile dial (Lymington Starting Platform), filling its square -->
+  <!-- 3 · Wind: live WeatherFile direction ring over average/max gauges (Lymington Starting Platform) -->
   <section class="card wind" aria-label="Live wind">
-    <div class="dial-wrap" id="dial-wrap">
-      <div class="wf-clip" id="wf-clip"><iframe id="wf-frame" scrolling="no" title="Live wind, Lymington Starting Platform"
-        src="https://weatherfile.com/widgets/wind-dial/wind-dial.php?locationID=GBR00001&wsunits=kts&locationname=false"></iframe></div>
+    <div class="cluster">
+      <div class="wf-clip" id="dir-clip"><iframe id="dir-frame" scrolling="no" title="Wind direction, Lymington Starting Platform"></iframe></div>
+      <div class="wf-clip" id="gauge-clip"><iframe id="gauge-frame" scrolling="no" title="Average and maximum wind, Lymington Starting Platform"></iframe></div>
+      <div class="label wind-src" id="wind-src">Starting Platform</div>
     </div>
   </section>
 
-  <!-- 4 · Tide now + sea state -->
-  <section class="card water">
-    <div class="card-head"><span class="title">Tide</span><span class="label">Lymington</span></div>
-    <div class="tide-state"><span class="state" id="tide-state">–</span><span class="now-h" id="tide-height"></span></div>
-    <div class="tide-next">
-      <div class="label" id="tide-next-label">Next</div>
-      <div class="tide-next-line"><span class="big" id="tide-next-time">–</span><span class="meta" id="tide-next-meta"></span></div>
+  <!-- 4 · Tide: a tide clock (where we are in the cycle) + the next high/low -->
+  <section class="card water" aria-label="Tide">
+    <svg class="tide-dial" id="tide-dial" viewBox="0 0 200 200" aria-label="Tide clock"></svg>
+    <div class="tide-read">
+      <div class="grp"><span class="state" id="tide-state">–</span><span class="now-h" id="tide-height"></span></div>
+      <div class="grp"><span class="label" id="tide-next-label">Next</span><span class="big" id="tide-next-time">–</span><span class="meta" id="tide-next-meta"></span></div>
+      <div class="grp"><span class="then" id="tide-after"></span></div>
     </div>
-    <div class="rows" id="tide-after"></div>
-    <div class="divider"></div>
-    <div class="card-head"><span class="title">Sea</span><span class="label" id="sea-label">Milford buoy</span></div>
-    <div class="rows" id="sea"></div>
+    <div class="tide-caption">Lymington</div>
   </section>
 
   <!-- 5 · Shared timeline: sky, wind, tide, rain on one time axis -->
-  <section class="card timeline"><svg id="timeline" aria-label="Forecast timeline"></svg></section>
+  <section class="card timeline">
+    <svg id="timeline" aria-label="Forecast timeline"></svg>
+    <!-- conditions now: air (Hurst Castle), waves and sea temperature (Milford buoy) -->
+    <div class="conditions">
+      <div class="cond"><div class="wf-clip" id="air-clip"><iframe id="air-frame" scrolling="no" title="Air temperature"></iframe></div><div class="c-lab">Air</div></div>
+      <div class="cond"><div class="c-val"><span class="num" id="wave-h">–</span><span class="u">m</span><svg class="arrow" id="wave-dir" viewBox="-8 -8 16 16"></svg></div>
+        <div class="c-sub" id="wave-sub"></div><div class="c-lab" id="wave-lab">Waves</div></div>
+      <div class="cond"><div class="c-val"><span class="num" id="sea-t">–</span><span class="u">°C</span></div><div class="c-lab" id="sea-lab">Sea</div></div>
+    </div>
+  </section>
 </div>
 <!-- Data credits (shown when "Updated" is tapped). Tide and wave data: Regional Coastal Monitoring Programme,
      channelcoast.org, Open Government Licence (real-time, not quality-controlled). Forecast: Open-Meteo.com (CC BY 4.0).
@@ -219,9 +244,30 @@ const CONFIG = {
   tideSensor: 87,                                   // CCO tide predictions: Lymington
   waveSensor: 73,                                   // CCO wave buoy: Milford (Christchurch Bay)
   webcam: "https://camsecure.uk/HLS/royalsolent.m3u8",
+  // WeatherFile widgets, all four made by Charlie in weatherfile.com's widget builder (24–27 Oct).
+  // Direction ring on top, Avg + Max wind gauges below. The page swaps day/night at sunrise and sunset.
+  // To change one, paste the new link from the builder here.
+  widgets: {
+    direction: {   // "Average direction" ring, pointer downwind
+      day:   "https://weatherfile.com/widget/weather-metrics/weather-metrics.html?loc_id=GBR00001&locname=false&wsu=kts&tu=c&ru=mm&wdu=cardinal&tz=local&tf=dateTimeIso&vwda&config=eyJvdmVycmlkZXMiOnsid2luZF9kaXJlY3Rpb24iOnsic2hhcGVDb2xvciI6IiNFNDU3MkUiLCJwb2ludGVyU3R5bGUiOiJkb3dud2luZCIsInZhbHVlQ29sb3IiOiIjNEE1NDYzIiwibGFiZWxDb2xvciI6IiM4QjkxOUEifX0sInBhZ2UiOnsiYmFja2dyb3VuZENvbG9yIjoiI0Y3RjZGMiJ9fQ==",
+      night: "https://weatherfile.com/widget/weather-metrics/weather-metrics.html?loc_id=GBR00001&locname=false&wsu=kts&tu=c&ru=mm&wdu=cardinal&tz=local&tf=dateTimeIso&vwda&config=eyJvdmVycmlkZXMiOnsid2luZF9kaXJlY3Rpb24iOnsic2hhcGVDb2xvciI6IiNDOTYwM0YiLCJwb2ludGVyU3R5bGUiOiJkb3dud2luZCIsInZhbHVlQ29sb3IiOiIjQzdDRkQ4IiwibGFiZWxDb2xvciI6IiM1QzY2NzIifX0sInBhZ2UiOnsiYmFja2dyb3VuZENvbG9yIjoiIzBBMEQxMSJ9fQ==",
+    },
+    air: {         // live air temperature, Hurst Castle (GBR00002); its own label is hidden (label colour = page)
+      day:   "https://weatherfile.com/widget/weather-metrics/weather-metrics.html?loc_id=GBR00002&locname=false&wsu=kts&tu=c&ru=mm&wdu=cardinal&tz=local&tf=dateTimeIso&vta&config=eyJvdmVycmlkZXMiOnsidGVtcCI6eyJyZWFkaW5nVHlwZSI6InZhbHVlIiwidmFsdWVDb2xvciI6IiMwRjFCMkQiLCJ1bml0Q29sb3IiOiIjNEE1NDYzIiwibGFiZWxDb2xvciI6IiNGN0Y2RjIifX0sInBhZ2UiOnsiYmFja2dyb3VuZENvbG9yIjoiI0Y3RjZGMiJ9fQ==",
+      night: "https://weatherfile.com/widget/weather-metrics/weather-metrics.html?loc_id=GBR00002&locname=false&wsu=kts&tu=c&ru=mm&wdu=cardinal&tz=local&tf=dateTimeIso&vta&config=eyJvdmVycmlkZXMiOnsidGVtcCI6eyJyZWFkaW5nVHlwZSI6InZhbHVlIiwidmFsdWVDb2xvciI6IiNDN0NGRDgiLCJ1bml0Q29sb3IiOiIjODc5MkEwIiwibGFiZWxDb2xvciI6IiMwQTBEMTEifX0sInBhZ2UiOnsiYmFja2dyb3VuZENvbG9yIjoiIzBBMEQxMSJ9fQ==",
+    },
+    gauges: {      // "Avg wind" (coral) and "Max wind", both 0–50 kn
+      day:   "https://weatherfile.com/widget/weather-metrics/weather-metrics.html?loc_id=GBR00001&locname=false&wsu=kts&tu=c&ru=mm&wdu=cardinal&tz=local&tf=dateTimeIso&vwsa&vwsh&config=eyJvdmVycmlkZXMiOnsid2luZF9hdmciOnsiYmFuZFRoZW1lIjoiTGlnaHRCbHVlLURhcmtCbHVlIiwidmFsdWVDb2xvciI6IiNFNDU3MkUiLCJ1bml0Q29sb3IiOiIjNEE1NDYzIiwibGFiZWxDb2xvciI6IiM4QjkxOUEiLCJtaW4iOjAsIm1heCI6NTB9LCJ3aW5kX21heCI6eyJiYW5kVGhlbWUiOiJMaWdodEJsdWUtRGFya0JsdWUiLCJ2YWx1ZUNvbG9yIjoiIzBGMUIyRCIsInVuaXRDb2xvciI6IiM0QTU0NjMiLCJsYWJlbENvbG9yIjoiIzhCOTE5QSIsIm1pbiI6MCwibWF4Ijo1MH19LCJwYWdlIjp7ImJhY2tncm91bmRDb2xvciI6IiNGN0Y2RjIifX0=",
+      night: "https://weatherfile.com/widget/weather-metrics/weather-metrics.html?loc_id=GBR00001&locname=false&wsu=kts&tu=c&ru=mm&wdu=cardinal&tz=local&tf=dateTimeIso&vwsa&vwsh&config=eyJvdmVycmlkZXMiOnsid2luZF9hdmciOnsiYmFuZFRoZW1lIjoiTGlnaHRCbHVlLURhcmtCbHVlIiwidmFsdWVDb2xvciI6IiNDOTYwM0YiLCJ1bml0Q29sb3IiOiIjODc5MkEwIiwibGFiZWxDb2xvciI6IiM1QzY2NzIiLCJtaW4iOjAsIm1heCI6NTB9LCJ3aW5kX21heCI6eyJiYW5kVGhlbWUiOiJMaWdodEJsdWUtRGFya0JsdWUiLCJ2YWx1ZUNvbG9yIjoiI0M3Q0ZEOCIsInVuaXRDb2xvciI6IiM4NzkyQTAiLCJsYWJlbENvbG9yIjoiIzVDNjY3MiIsIm1pbiI6MCwibWF4Ijo1MH19LCJwYWdlIjp7ImJhY2tncm91bmRDb2xvciI6IiMwQTBEMTEifX0=",
+    },
+  },
   // Open-Meteo: ask for ONE model only (two models rename every field). Fallback model if it fails.
   forecastModels: ["ukmo_uk_deterministic_2km", "best_match"],
   windowBefore: 3, windowAfter: 21,                 // timeline: hours before / after now
+  // Fixed scale for the water in the tide clock: Lymington's lowest and highest predicted tides
+  // (CCO predictions, Oct 2026 – Nov 2027: 0.31 m and 3.40 m). Big spring tides nearly fill / empty
+  // the dial; on neaps the water only moves in the middle (neap LW ~1.6 m, neap HW ~2.8 m).
+  tideScale: { low: 0.3, high: 3.4 },
 };
 const MIN = 60e3, HOUR = 3600e3;
 
@@ -480,9 +526,11 @@ async function cycle(name) {
 function renderAll() {
   const t = now(), suns = sunDays(t);
   document.documentElement.dataset.theme = params.get("theme") || (isDaylight(suns, t) ? "day" : "night");
+  syncWidgets();
   renderStrip(t, suns);
   renderWindSide(t);
   renderWater(t);
+  renderConditions(t);
   renderTimeline();
   renderDebug();
 }
@@ -508,7 +556,7 @@ function renderStrip(t, suns) {
 
 function renderWindSide(t) {
   const fc = STATE.forecast;
-  if (!fc || !el("fc-wind")) return;   // the forecast figures beside the rose are switched off for now
+  if (!fc || !el("fc-wind")) return;   // the forecast figures beside the wind dials are switched off for now
   // average of the forecast hours either side of now
   const near = fc.filter(f => Math.abs(f.t - t) <= HOUR);
   if (!near.length) return;
@@ -518,42 +566,129 @@ function renderWindSide(t) {
   el("fc-gust").innerHTML = `${Math.round(Math.max(...near.map(f => f.gust)))} <span class="unit">kn</span>`;
 }
 
-// Fit the cropped WeatherFile dial into whatever square space the tile has.
-function fitWidget() {
-  const wrap = el("dial-wrap"), S = Math.floor(Math.min(wrap.clientWidth, wrap.clientHeight));
-  if (!S) return;
-  el("wf-clip").style.width = el("wf-clip").style.height = S + "px";
-  // the compass card occupies x 50–250, y 61–261 of the 300px widget page
-  el("wf-frame").style.transform = `scale(${S / 200}) translate(-50px, -61px)`;
+// Fit the WeatherFile widgets into the wind column, showing just the dials (their header bar is trimmed off).
+// Measured (27 Oct) from the visible pixels, plus ~3px breathing room:
+// direction widget at 160px wide -> ring + "Average direction" at x 37–133, y 57–155;
+// gauge widget at 280px wide -> both gauges with their labels at x 28–252, y 46–128.
+const CROPS = {
+  dir:   { frameW: 160, frameH: 200, x: 20, y: 54, w: 120, h: 104 },
+  gauge: { frameW: 280, frameH: 200, x: 18, y: 43, w: 244, h: 88 },
+};
+// air temperature widget at 160px wide: the value row ("14 °C") is centred at y 79–105
+const AIR_CROP = { frameW: 160, frameH: 140, x: 20, y: 76, w: 120, h: 32 };
+function fitWidgets() {
+  Object.assign(el("air-clip").style, { width: AIR_CROP.w + "px", height: AIR_CROP.h + "px" });
+  Object.assign(el("air-frame").style, { width: AIR_CROP.frameW + "px", height: AIR_CROP.frameH + "px", transform: `translate(${-AIR_CROP.x}px, ${-AIR_CROP.y}px)` });
+  const box = document.querySelector(".wind");
+  const availW = box.clientWidth - 16, availH = box.clientHeight;
+  if (!availW || !availH) return;
+  const captionH = el("wind-src").offsetHeight + 2 + 8;   // caption + its margin + the two 4px gaps
+  const k = Math.min(1, availW / CROPS.gauge.w, (availH - captionH) / (CROPS.dir.h + CROPS.gauge.h));   // never enlarge (keeps dials sharp)
+  for (const [name, c] of Object.entries(CROPS)) {
+    Object.assign(el(name + "-clip").style, { width: Math.floor(c.w * k) + "px", height: Math.floor(c.h * k) + "px" });
+    Object.assign(el(name + "-frame").style, { width: c.frameW + "px", height: c.frameH + "px", transform: `scale(${k}) translate(${-c.x}px, ${-c.y}px)` });
+  }
+}
+
+// Load the day or night version of each widget (only reloads when the theme actually changes).
+function syncWidgets() {
+  const mode = document.documentElement.dataset.theme === "day" ? "day" : "night";
+  [["dir-frame", CONFIG.widgets.direction], ["gauge-frame", CONFIG.widgets.gauges], ["air-frame", CONFIG.widgets.air]].forEach(([id, urls]) => {
+    const f = el(id);
+    if (f.dataset.mode !== mode) { fitWidgets(); f.dataset.mode = mode; f.src = urls[mode]; }
+  });
 }
 
 function renderWater(t) {
   const tide = STATE.tide;
-  if (tide) {
-    const h = tideAt(tide, t);
-    const d = tideAt(tide, new Date(+t + 15 * MIN)) - tideAt(tide, new Date(+t - 15 * MIN));
-    const trend = Math.abs(d) < .01 ? ["flat", "Stand"] : d > 0 ? ["up", "Rising"] : ["down", "Falling"];
-    // what matters most: rising or falling, and when the next high/low is
-    el("tide-state").innerHTML = `${icon(trend[0], 24)}${trend[1]}`;
-    el("tide-height").textContent = h == null ? "" : `${h.toFixed(2)} m now`;
-    const [n1, n2] = tideEvents(tide).filter(e => e.t > t);
-    const name = (e) => e.type === "HW" ? "High water" : "Low water";
-    if (n1) {
-      el("tide-next-label").textContent = name(n1);
-      el("tide-next-time").textContent = hhmm(n1.t);
-      el("tide-next-meta").textContent = `${n1.h.toFixed(1)} m · in ${countdown(n1.t - t)}`;
-    }
-    el("tide-after").innerHTML = n2 ? `<div class="row"><span class="k">then ${name(n2)}</span>
-      <span class="v">${hhmm(n2.t)} <span class="unit">· ${n2.h.toFixed(1)} m</span></span></div>` : "";
+  if (!tide) return;
+  const h = tideAt(tide, t);
+  const d = tideAt(tide, new Date(+t + 15 * MIN)) - tideAt(tide, new Date(+t - 15 * MIN));
+  const trend = Math.abs(d) < .01 ? ["flat", "Stand"] : d > 0 ? ["up", "Rising"] : ["down", "Falling"];
+  const events = tideEvents(tide);
+  const prev = [...events].reverse().find(e => e.t <= t);
+  const [n1, n2] = events.filter(e => e.t > t);
+  const name = (e) => e.type === "HW" ? "High water" : "Low water";
+
+  // readout: rising/falling, then the next high or low with a countdown
+  el("tide-state").innerHTML = `${icon(trend[0], 24)}${trend[1]}`;
+  el("tide-height").textContent = h == null ? "" : `${h.toFixed(2)} m now`;
+  if (n1) {
+    el("tide-next-label").textContent = name(n1);
+    el("tide-next-time").textContent = hhmm(n1.t);
+    el("tide-next-meta").textContent = `${n1.h.toFixed(1)} m · in ${countdown(n1.t - t)}`;
   }
+  el("tide-after").innerHTML = n2 ? `then ${n2.type === "HW" ? "High" : "Low"} <b>${hhmm(n2.t)}</b>` : "";
+
+  if (prev && n1) el("tide-dial").innerHTML = tideClock(t, h, prev, n1, n2);
+}
+
+function renderConditions(t) {
   const w = STATE.waves;
-  if (w) {
-    const age = +t - w.t, old = age > SOURCES.waves.staleAfter;
-    el("sea-label").innerHTML = old ? `<span class="warn">Milford buoy · ${ago(age)} old</span>` : "Milford buoy";
-    el("sea").innerHTML = `
-      <div class="row"><span class="k">Waves</span><span class="v">${w.hs.toFixed(1)} m <span class="unit">· ${Math.round(w.tp)} s · ${compass(w.dir)}</span></span></div>
-      <div class="row"><span class="k">Sea temp</span><span class="v">${w.sst == null ? "–" : w.sst.toFixed(1) + "°"}</span></div>`;
+  if (!w) return;
+  const old = +t - w.t > SOURCES.waves.staleAfter;
+  el("wave-h").textContent = w.hs.toFixed(1);
+  el("wave-sub").textContent = `${Math.round(w.tp)} s · ${compass(w.dir)}`;
+  el("wave-dir").innerHTML = `<path transform="rotate(${w.dir + 180})" d="M0,-6.5 L4.5,4.5 L0,2 L-4.5,4.5 Z" fill="var(--ink-2)"/>`;   // way the waves travel
+  el("sea-t").textContent = w.sst == null ? "–" : w.sst.toFixed(1);
+  for (const id of ["wave-lab", "sea-lab"]) {
+    el(id).classList.toggle("warn", old);
+    el(id).textContent = (id === "wave-lab" ? "Waves" : "Sea") + (old ? ` · ${ago(+t - w.t)} old` : "");
   }
+}
+
+/* Tide clock: HIGH at the top, LOW at the bottom. The hand goes clockwise: down the right side
+   while falling (HW -> LW), up the left side while rising (LW -> HW). Each half is spaced by the
+   real predicted times, so it stays right with Lymington's long high-water stand.
+   The water inside the dial shows the current height on a fixed year-round scale, so spring tides
+   nearly fill and empty it while neap tides only move in the middle. */
+function tideClock(t, h, prev, next, after) {
+  const c = 100, R = 88, rad = (a) => (a - 90) * Math.PI / 180;
+  const pt = (a, r) => [c + r * Math.cos(rad(a)), c + r * Math.sin(rad(a))];
+  const falling = prev.type === "HW";
+  const base = falling ? 0 : 180;                                   // where this half starts
+  const frac = clamp((t - prev.t) / (next.t - prev.t), 0, 1);
+  const ang = base + 180 * frac;
+
+  // water level on the fixed year-round scale (empty = lowest tide of the year, full = highest)
+  const { low, high } = CONFIG.tideScale;
+  const lvl = clamp((h - low) / (high - low), 0, 1);
+  const wy = c + R - lvl * 2 * R;
+  let wave = `M${c - R},${wy}`;
+  for (let x = c - R; x <= c + R; x += 4) wave += ` L${x},${(wy + 2.2 * Math.sin((x - c) / 11)).toFixed(1)}`;
+
+  let g = `<clipPath id="dial-clip"><circle cx="${c}" cy="${c}" r="${R}"/></clipPath>`;
+  g += `<g clip-path="url(#dial-clip)"><path d="${wave} L${c + R},${c + R} L${c - R},${c + R} Z" fill="var(--sea-fill)"/>`;
+  g += `<path d="${wave}" fill="none" stroke="var(--sea)" stroke-width="1.6" opacity=".55"/></g>`;
+  g += `<circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="var(--line-strong)" stroke-width="1.5"/>`;
+
+  // hour ticks on each half, spaced by that half's real duration
+  const halves = [[prev, next, base], [next, after, (base + 180) % 360]];
+  halves.forEach(([a, b, start]) => {
+    if (!a || !b) return;
+    const dur = b.t - a.t;
+    for (let k = 1; k * HOUR < dur - 10 * MIN; k++) {
+      const ta = start + 180 * (k * HOUR) / dur, [x1, y1] = pt(ta, R - 2), [x2, y2] = pt(ta, R - 9);
+      g += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--muted)" stroke-width="1.4" stroke-linecap="round"/>`;
+    }
+  });
+
+  // elapsed part of this half-tide as a coral arc on the rim
+  if (frac > .01) {
+    const [sx, sy] = pt(base, R), [ex, ey] = pt(ang, R);
+    g += `<path d="M${sx},${sy} A${R},${R} 0 0 1 ${ex},${ey}" fill="none" stroke="var(--now)" stroke-width="3.5" stroke-linecap="round"/>`;
+  }
+
+  // HIGH / LOW labels; the one we're heading for is coral
+  const nextIsHigh = next.type === "HW";
+  const lab = (y, txt, isNext) => `<text class="dial-lab" x="${c}" y="${y}" text-anchor="middle" fill="${isNext ? "var(--now-text)" : "var(--ink-2)"}">${txt}</text>`;
+  g += lab(c - R + 30, "HIGH", nextIsHigh) + lab(c + R - 18, "LOW", !nextIsHigh);
+
+  // the hand
+  const [hx, hy] = pt(ang, R - 16), [tx, ty] = pt(ang + 180, 14);
+  g += `<line x1="${tx}" y1="${ty}" x2="${hx}" y2="${hy}" stroke="var(--now)" stroke-width="3.5" stroke-linecap="round"/>`;
+  g += `<circle cx="${c}" cy="${c}" r="6" fill="var(--now)" stroke="var(--card-solid)" stroke-width="2.5"/>`;
+  return g;
 }
 
 /* ---------- Timeline: drawn at its real pixel size and redrawn on resize ---------- */
@@ -563,9 +698,9 @@ function renderTimeline() {
   if (!W || !H) return;
   const T = now(), suns = sunDays(T);
   const t0 = new Date(+T - CONFIG.windowBefore * HOUR), t1 = new Date(+T + CONFIG.windowAfter * HOUR);
-  const gutter = 48, right = 6;
-  const x = (t) => gutter + (t - t0) / (t1 - t0) * (W - gutter - right);
-  const inView = (cx) => cx > gutter + 20 && cx < W - 12;
+  const gutter = 48, right = 6, xr = W - right;
+  const x = (t) => gutter + (t - t0) / (t1 - t0) * (xr - gutter);
+  const inView = (cx) => cx > gutter + 20 && cx < xr - 12;
 
   // Lane heights (design values for ~262px, scaled to the space available)
   const base = { sky: 30, g1: 4, wind: 100, g2: 8, tide: 80, g3: 6, rain: 14, g4: 4, axis: 16 };
@@ -623,12 +758,12 @@ function renderTimeline() {
     const g = fw.map(f => [x(f.t), wy(f.gust)]), m = fw.map(f => [x(f.t), wy(f.wind)]);
     s += `<g clip-path="url(#tl-clip)"><path d="${path(g)}${path(m.slice().reverse()).replace("M", "L")}Z" fill="var(--gust)"/>`;
     s += `<path d="${path(m)}" fill="none" stroke="var(--wind)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></g>`;
-    const vis = fw.filter(f => x(f.t) > gutter + 40 && x(f.t) < W - 60);
+    const vis = fw.filter(f => x(f.t) > gutter + 40 && x(f.t) < xr - 60);
     if (vis.length) {
       const peak = vis.reduce((a, b) => b.gust > a.gust ? b : a);
       // label sits beside the peak (not above it) so it can't clash with the direction arrows
-      const px = x(peak.t), right = px < W - 90;
-      front += `<text class="t-tick halo" x="${right ? px + 7 : px - 7}" y="${wy(peak.gust) + 4}" text-anchor="${right ? "start" : "end"}">gusts ${Math.round(peak.gust)}</text>`;
+      const px = x(peak.t), onRight = px < xr - 90;
+      front += `<text class="t-tick halo" x="${onRight ? px + 7 : px - 7}" y="${wy(peak.gust) + 4}" text-anchor="${onRight ? "start" : "end"}">gusts ${Math.round(peak.gust)}</text>`;
     }
     slots.forEach(t => {
       const f = fcAt(t), cx = x(t);
@@ -657,7 +792,7 @@ function renderTimeline() {
     s += `<path d="${path(tp)}" fill="none" stroke="var(--sea)" stroke-width="2" stroke-linejoin="round"/></g>`;
     const events = tideEvents(tide), nextEvent = events.find(e => e.t > T);
     events.filter(e => e.t > t0 && e.t < t1).forEach(e => {
-      const ex = clamp(x(e.t), gutter + 40, W - 44), ey = ty(e.h);
+      const ex = clamp(x(e.t), gutter + 40, xr - 44), ey = ty(e.h);
       const yy = e.type === "HW" ? ey - 7 : ey + 15;
       const cls = e === nextEvent ? " next" : "";
       if (cls) front += `<circle cx="${x(e.t)}" cy="${ey}" r="4" fill="var(--card-solid)" stroke="var(--now)" stroke-width="2"/>`;
@@ -692,12 +827,13 @@ function renderTimeline() {
   const ay = lane.axis.bot - 2;
   slots.forEach(t => {
     const cx = x(t);
-    if (cx < gutter + 6 || cx > W - 8 || Math.abs(cx - nx) < 36) return;
+    if (cx < gutter + 6 || cx > xr - 8 || Math.abs(cx - nx) < 36) return;
     s += localHour(t) === 0
       ? `<text class="t-day" x="${cx}" y="${ay}" text-anchor="middle">${weekday(t)}</text>`
       : `<text class="t-hour" x="${cx}" y="${ay}" text-anchor="middle">${String(localHour(t)).padStart(2, "0")}</text>`;
   });
   s += `<text class="t-now" x="${nx}" y="${ay}" text-anchor="middle">Now</text>`;
+
 
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.innerHTML = s;
@@ -755,13 +891,13 @@ setInterval(() => {
    11. START
    ===================================================================== */
 renderAll();
-fitWidget();
+fitWidgets();
 let creditsTimer;
 el("updated").addEventListener("click", () => {
   el("credits").hidden = !el("credits").hidden;
   clearTimeout(creditsTimer); creditsTimer = setTimeout(() => { el("credits").hidden = true; }, 8000);
 });
-new ResizeObserver(() => { fitWidget(); renderTimeline(); }).observe(document.body);
+new ResizeObserver(() => { fitWidgets(); renderTimeline(); }).observe(document.body);
 startWebcam();
 Object.keys(SOURCES).forEach(cycle);
 setInterval(renderAll, 30e3);   // clock, "now" line, theme switch at sunrise/sunset
