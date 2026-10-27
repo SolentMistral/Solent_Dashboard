@@ -157,6 +157,17 @@ a { color: inherit; }
 .cond .c-lab.warn { color: var(--warn); }
 .cond .arrow { width: 17px; height: 17px; align-self: center; margin-left: 2px; }
 .timeline svg { width: 100%; height: 100%; display: block; overflow: visible; }
+/* The chart sits in a wrapper that can scroll sideways on narrow screens. The lane names and
+   wind scale are drawn in a separate strip (the "gutter") that stays put while the chart moves. */
+.tl-wrap { position: relative; display: flex; min-width: 0; min-height: 0; overflow: hidden; }
+.tl-wrap > svg { flex: none; }
+.timeline .tl-gutter { width: 48px; margin-right: -48px; position: sticky; left: 0; z-index: 1; background: var(--bg); }
+.tl-wrap.scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.tl-wrap.scroll::-webkit-scrollbar { display: none; }
+.tl-wrap.scrolled .tl-gutter { box-shadow: 1px 0 0 var(--line); }
+/* soft fade on the right edge = "there's more this way" */
+.tl-wrap.more { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+                        mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent); }
 .t-lane  { font: 600 12px var(--font); fill: var(--ink-2); }
 .t-tick  { font: 500 11px var(--font); fill: var(--muted); font-variant-numeric: tabular-nums; }
 .t-hour  { font: 500 12px var(--font); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -169,6 +180,87 @@ a { color: inherit; }
 .t-none  { font: 500 11.5px var(--font); fill: var(--muted); }
 .halo    { paint-order: stroke; stroke: var(--card-solid); stroke-width: 3.5px; stroke-linejoin: round; }
 
+.d-short { display: none; }
+
+/* =====================================================================
+   2b. OTHER SCREENS
+   The rules above are the kitchen tablet (landscape). These adjust the
+   same pieces for a portrait tablet and for phones. The JavaScript uses
+   the same phone test (see PHONE in section 4) — keep the two in step.
+   ===================================================================== */
+
+/* ---------- Portrait tablet: still one screen, no scrolling ----------
+   strip / webcam across the top / wind + tide side by side / timeline with
+   the Air · Waves · Sea readings in a row underneath. */
+@media (orientation: portrait) and (min-width: 560px) and (min-height: 480px) {
+  .app {
+    grid-template-columns: 262px minmax(0, 1fr);
+    grid-template-rows: var(--strip-h) minmax(0, 32fr) minmax(0, 25fr) minmax(0, 43fr);
+    grid-template-areas:
+      "strip strip"
+      "cam   cam"
+      "wind  water"
+      "time  time";
+  }
+  .wind { border-left: 0; padding: 0; }
+  .strip { gap: 16px; }
+  .chip .label, .d-long { display: none; }       /* moon name, long date: no room */
+  .d-short { display: inline; }
+}
+
+/* ---------- Phone (or any short landscape screen): the page scrolls ----------
+   strip on two lines / wind / tide / webcam / timeline (swipe sideways) / readings */
+@media (max-width: 559px), (max-height: 479px) {
+  html, body { height: auto; overflow-x: hidden; overflow-y: auto; }
+  .app {
+    height: auto; min-height: 100vh; min-height: 100dvh;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "strip" "wind" "water" "cam" "time";
+  }
+  .card { container-type: normal; }               /* cards take their natural height … */
+  .water { container-type: size; height: 214px; } /* … except the tide panel, which sizes its dial from its box */
+
+  /* top strip: time, date, "Updated" on line 1; sun and moon on line 2 */
+  .strip { flex-wrap: wrap; row-gap: 8px; column-gap: 14px; padding: 2px 2px 0; }
+  .strip .spacer { order: 1; flex: 0 0 100%; height: 0; }
+  .strip .chip { order: 2; }
+  .updated { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .d-long { display: none; }
+  .d-short { display: inline; }
+  .credits-pop { top: 84px; left: 14px; right: 14px; max-width: none; }
+
+  /* wind: direction ring beside the gauges */
+  .wind { border-left: 0; padding: 0; }
+  .cluster { grid-template-columns: auto auto; align-items: center; column-gap: 8px; }
+  .wind-src { grid-column: 1 / -1; }
+
+  .water { border-left: 0; border-top: 1px solid var(--line); padding: 14px 0 0; }
+  .cam { height: min(calc((100vw - 2 * var(--pad)) * 9 / 16), 70vh); }   /* 16:9, but never most of a short screen */
+  .timeline { grid-template-columns: minmax(0, 1fr); padding-top: 12px; }
+  .tl-wrap { height: 270px; }
+}
+@media (max-width: 399px) { .chip .label { display: none; } }   /* small phones: drop the moon's name */
+
+/* Landscape phone: wide but short, so wind and tide sit side by side and the strip is one line again */
+@media (max-height: 479px) and (min-width: 640px) {
+  .app { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "strip strip" "wind water" "cam cam" "time time"; }
+  .water { border-top: 0; border-left: 1px solid var(--line); padding: 0 0 0 18px; }
+  .strip { flex-wrap: nowrap; }
+  .strip .spacer { order: 0; flex: 1; }
+  .strip .chip { order: 0; }
+  .updated { margin-left: 0; }
+}
+
+/* Portrait tablet and phone: Air · Waves · Sea in a row under the timeline (labels line up) */
+@media (orientation: portrait) and (min-width: 560px) and (min-height: 480px), (max-width: 559px), (max-height: 479px) {
+  .timeline { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .conditions { flex-direction: row; justify-content: space-evenly; align-items: start;
+    border-left: 0; border-top: 1px solid var(--line); margin: 8px 0 0; padding: 12px 0 4px; }
+  .cond { grid-template-rows: 32px auto auto; align-items: center; }
+  .cond #wave-sub { order: 3; }   /* "Waves" label first, so the three labels sit on one line */
+}
+
 /* ---------- Debug overlay (add ?debug to the address) ---------- */
 .debug { position: fixed; left: 8px; bottom: 8px; z-index: 9; font: 11px/1.4 ui-monospace, monospace;
   background: rgba(0,0,0,.75); color: #fff; padding: 6px 8px; border-radius: 6px; white-space: pre; }
@@ -180,7 +272,7 @@ a { color: inherit; }
   <!-- 1 · Top strip: time, date, sun, moon, data freshness -->
   <header class="strip">
     <div class="clock" id="clock">--:--</div>
-    <div class="date" id="date"></div>
+    <div class="date"><span class="d-long" id="date"></span><span class="d-short" id="date-short"></span></div>
     <div class="spacer"></div>
     <div class="chip" id="sunrise"></div>
     <div class="chip" id="sunset"></div>
@@ -216,7 +308,10 @@ a { color: inherit; }
 
   <!-- 5 · Shared timeline: sky, wind, tide, rain on one time axis -->
   <section class="card timeline">
-    <svg id="timeline" aria-label="Forecast timeline"></svg>
+    <div class="tl-wrap" id="tl-wrap">
+      <svg class="tl-gutter" id="tl-gutter" aria-hidden="true"></svg>
+      <svg id="timeline" aria-label="Forecast timeline"></svg>
+    </div>
     <!-- conditions now: air (Hurst Castle), waves and sea temperature (Milford buoy) -->
     <div class="conditions">
       <div class="cond"><div class="wf-clip" id="air-clip"><iframe id="air-frame" scrolling="no" title="Air temperature"></iframe></div><div class="c-lab">Air</div></div>
@@ -285,6 +380,8 @@ const params = new URLSearchParams(location.search);
 const FIXED_NOW = params.get("now") ? new Date(params.get("now")) : null;   // for testing only
 const now = () => FIXED_NOW || new Date();
 const el = (id) => document.getElementById(id);
+// Phone layout test — must match the "Phone" @media rule in section 2b
+const PHONE = matchMedia("(max-width: 559px), (max-height: 479px)");
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const fmt = (opts) => new Intl.DateTimeFormat("en-GB", { timeZone: CONFIG.timeZone, ...opts });
 const hhmm = (d) => fmt({ hour: "2-digit", minute: "2-digit" }).format(d);
@@ -540,6 +637,7 @@ function renderAll() {
 function renderStrip(t, suns) {
   el("clock").textContent = hhmm(t);
   el("date").textContent = fmt({ weekday: "long", day: "numeric", month: "long" }).format(t);
+  el("date-short").textContent = fmt({ weekday: "short", day: "numeric", month: "short" }).format(t);   // narrow screens
   const today = suns.find(s => localDay(s.rise) === localDay(t)) || suns[1];
   el("sunrise").innerHTML = `${icon("rise", 22)}<span>${hhmm(today.rise)}</span>`;
   el("sunset").innerHTML  = `${icon("set", 22)}<span>${hhmm(today.set)}</span>`;
@@ -581,11 +679,19 @@ const AIR_CROP = { frameW: 160, frameH: 140, x: 20, y: 76, w: 120, h: 32 };
 function fitWidgets() {
   Object.assign(el("air-clip").style, { width: AIR_CROP.w + "px", height: AIR_CROP.h + "px" });
   Object.assign(el("air-frame").style, { width: AIR_CROP.frameW + "px", height: AIR_CROP.frameH + "px", transform: `translate(${-AIR_CROP.x}px, ${-AIR_CROP.y}px)` });
-  const box = document.querySelector(".wind");
-  const availW = box.clientWidth - 16, availH = box.clientHeight;
-  if (!availW || !availH) return;
-  const captionH = el("wind-src").offsetHeight + 2 + 8;   // caption + its margin + the two 4px gaps
-  const k = Math.min(1, availW / CROPS.gauge.w, (availH - captionH) / (CROPS.dir.h + CROPS.gauge.h));   // never enlarge (keeps dials sharp)
+  const box = document.querySelector(".wind"), cs = getComputedStyle(box);
+  const availW = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight), availH = box.clientHeight;
+  if (!availW) return;
+  let k;   // scale for the dials; never enlarge (keeps them sharp)
+  if (PHONE.matches) {
+    // phone: direction ring beside the gauges (8px gap), sized to the width; the page scrolls, so height is free
+    k = Math.min(1, (availW - 8) / (CROPS.dir.w + CROPS.gauge.w));
+  } else {
+    // tablet: ring stacked over the gauges, fitted to the panel
+    if (!availH) return;
+    const captionH = el("wind-src").offsetHeight + 2 + 8;   // caption + its margin + the two 4px gaps
+    k = Math.min(1, availW / CROPS.gauge.w, (availH - captionH) / (CROPS.dir.h + CROPS.gauge.h));
+  }
   for (const [name, c] of Object.entries(CROPS)) {
     Object.assign(el(name + "-clip").style, { width: Math.floor(c.w * k) + "px", height: Math.floor(c.h * k) + "px" });
     Object.assign(el(name + "-frame").style, { width: c.frameW + "px", height: c.frameH + "px", transform: `scale(${k}) translate(${-c.x}px, ${-c.y}px)` });
@@ -737,14 +843,23 @@ function smoothCurve(p) {
   return { d, back, at };
 }
 
-/* ---------- Timeline: drawn at its real pixel size and redrawn on resize ---------- */
+/* ---------- Timeline: drawn at its real pixel size and redrawn on resize ----------
+   If the screen is too narrow for the whole window (under 20 px per hour, i.e. a phone),
+   the chart is drawn wider, at the kitchen tablet's spacing, and you swipe it sideways.
+   The lane names and wind scale go in the separate gutter strip, which stays put. */
+const TL_MIN_PX_PER_HOUR = 20, TL_SWIPE_PX_PER_HOUR = 24;
 function renderTimeline() {
-  const svg = el("timeline");
-  const W = svg.clientWidth, H = svg.clientHeight;
-  if (!W || !H) return;
+  const wrap = el("tl-wrap"), svg = el("timeline"), gsvg = el("tl-gutter");
+  const viewW = wrap.clientWidth, H = wrap.clientHeight;
+  if (!viewW || !H) return;
   const T = now(), suns = sunDays(T);
   const t0 = new Date(+T - CONFIG.windowBefore * HOUR), t1 = new Date(+T + CONFIG.windowAfter * HOUR);
-  const gutter = 48, right = 6, xr = W - right;
+  const gutter = 48, right = 6, hours = CONFIG.windowBefore + CONFIG.windowAfter;
+  const fits = (viewW - gutter - right) / hours >= TL_MIN_PX_PER_HOUR;
+  const W = fits ? viewW : gutter + right + hours * TL_SWIPE_PX_PER_HOUR;
+  wrap.classList.toggle("scroll", !fits);
+  svg.style.width = fits ? "" : W + "px";
+  const xr = W - right;
   const x = (t) => gutter + (t - t0) / (t1 - t0) * (xr - gutter);
   const inView = (cx) => cx > gutter + 20 && cx < xr - 12;
 
@@ -757,7 +872,7 @@ function renderTimeline() {
     `<text x="0" y="${ly}"><tspan class="t-lane">${name}</tspan>${unit ? `<tspan class="t-tick" dx="4">${unit}</tspan>` : ""}</text>`;
   const path = (p) => p.map(([a, b], i) => `${i ? "L" : "M"}${a.toFixed(1)},${b.toFixed(1)}`).join("");
 
-  let s = "", front = "";   // s = background and plots; front = labels and dots drawn over the now line
+  let s = "", front = "", gut = "";   // s = background and plots; front = labels and dots drawn over the now line; gut = gutter strip
   s += `<clipPath id="tl-clip"><rect x="${gutter}" y="0" width="${W - gutter - right}" height="${H}"/></clipPath>`;
 
   // Day/night shading behind everything
@@ -779,7 +894,7 @@ function renderTimeline() {
   const nx = x(T);
 
   // ---- Sky: icon + temperature side by side
-  s += laneLabel("Sky", "", lane.sky.top + 19);
+  gut += laneLabel("Sky", "", lane.sky.top + 19);
   if (fc.length) slots.forEach(t => {
     const f = fcAt(t), cx = x(t);
     if (!inView(cx)) return;
@@ -788,7 +903,7 @@ function renderTimeline() {
   });
 
   // ---- Wind: gust band + mean wind line + direction arrows (pointing downwind)
-  s += laneLabel("Wind", "kn", lane.wind.top + 13);
+  gut += laneLabel("Wind", "kn", lane.wind.top + 13);
   const fw = fc.filter(f => f.t >= +t0 - HOUR && f.t <= +t1 + HOUR);
   if (fw.length) {
     const maxG = Math.max(...fw.map(f => f.gust));
@@ -798,7 +913,7 @@ function renderTimeline() {
     const step = top > 40 ? 20 : 10;
     for (let v = step; v <= top; v += step) {
       s += `<line x1="${gutter}" x2="${W - right}" y1="${wy(v)}" y2="${wy(v)}" stroke="var(--line)" stroke-width="1"/>`;
-      if (wy(v) - lane.wind.top > 26) s += `<text class="t-tick" x="${gutter - 8}" y="${wy(v) + 4}" text-anchor="end">${v}</text>`;
+      if (wy(v) - lane.wind.top > 26) gut += `<text class="t-tick" x="${gutter - 8}" y="${wy(v) + 4}" text-anchor="end">${v}</text>`;
     }
     s += `<line x1="${gutter}" x2="${W - right}" y1="${plotBot}" y2="${plotBot}" stroke="var(--line-strong)" stroke-width="1"/>`;
     // gust band = smooth gust edge along the top, back along the smooth mean-wind line
@@ -824,7 +939,7 @@ function renderTimeline() {
   }
 
   // ---- Tide: curve + HW/LW labels (labels get their own margins inside the lane)
-  s += laneLabel("Tide", "m", lane.tide.top + 13);
+  gut += laneLabel("Tide", "m", lane.tide.top + 13);
   const tide = STATE.tide || [];
   const tw = tide.filter(p => p.t >= +t0 - HOUR && p.t <= +t1 + HOUR);
   if (tw.length > 2) {
@@ -849,7 +964,7 @@ function renderTimeline() {
   }
 
   // ---- Rain: hourly bars
-  s += laneLabel("Rain", "", lane.rain.top + 11);
+  gut += laneLabel("Rain", "", lane.rain.top + 11);
   const rw = fc.filter(f => f.t >= t0 && f.t < t1);
   if (rw.some(f => f.rain >= 0.1)) {
     const rTop = Math.max(1, Math.ceil(Math.max(...rw.map(f => f.rain))));
@@ -881,7 +996,24 @@ function renderTimeline() {
 
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   svg.innerHTML = s;
+  gsvg.setAttribute("viewBox", `0 0 ${gutter} ${H}`);
+  gsvg.innerHTML = gut;
+  timelineEdges();
 }
+
+// Swipe hints: fade the right edge while there's more to see; a hairline beside the gutter once moved
+function timelineEdges() {
+  const w = el("tl-wrap"), scroll = w.classList.contains("scroll");
+  w.classList.toggle("more", scroll && w.scrollLeft + w.clientWidth < w.scrollWidth - 4);
+  w.classList.toggle("scrolled", scroll && w.scrollLeft > 2);
+}
+// After a swipe, slide back to "now" once it's been left alone for 2 minutes
+let tlHomeTimer;
+el("tl-wrap").addEventListener("scroll", () => {
+  timelineEdges();
+  clearTimeout(tlHomeTimer);
+  tlHomeTimer = setTimeout(() => el("tl-wrap").scrollTo({ left: 0, behavior: "smooth" }), 2 * MIN);
+}, { passive: true });
 
 function renderDebug() {
   if (!params.has("debug")) return;
